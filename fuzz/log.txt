@@ -1,0 +1,27 @@
+fusejs-python — differential fuzz run
+============================================================
+oracle          : fuse.js 7.5.0 (Node)
+duration        : 60.0s
+seed            : 20260803
+cases           : 51569  (859/s)
+oracle rejects  : 0  (input the original refused)
+
+STRUCTURAL DIVERGENCES : 0
+tie-order differences  : 8  (0.016% of cases)
+score-only diffs       : 4574
+  worst relative error : 8.512e-14  (tolerance 1e-12)
+  worst ULP distance   : 515
+
+Structure — result set, ordering, match indices, keys, refIndex — is
+compared EXACTLY. Scores carry a relative tolerance because CPython
+and V8 ship different libm implementations of pow and log: CPython's
+are correctly rounded, V8's are not, and token search compounds both.
+No amount of porting fidelity removes that. See DECISIONS.md.
+
+'tie-order differences' are the *consequence* of that: 1 ULP is
+enough to split a score tie, and the idx tie-break then fires in one
+engine but not the other. Under a `limit` this can change which
+document makes the cut. Reported separately and honestly rather than
+hidden — it is a real, if rare, user-visible effect.
+
+RESULT: no structural divergences.
