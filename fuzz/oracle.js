@@ -34,6 +34,22 @@ function handle(cmd) {
     case 'match':
       return Fuse.match(cmd.pattern, cmd.text, cmd.options || {})
 
+    // Batch `Math.pow`, for verifying the fdlibm port in src/fusejs/_fdlibm.py.
+    // V8's Math.pow is not correctly rounded, so the Python port has to
+    // reproduce *its* rounding rather than the true result.
+    //
+    // Operands and results travel as little-endian hex float bits: exact in
+    // both directions, and it sidesteps JSON's inability to carry Infinity
+    // and NaN at all.
+    case 'pow': {
+      const buf = Buffer.allocUnsafe(8)
+      const decode = (hex) => Buffer.from(hex, 'hex').readDoubleLE(0)
+      return cmd.pairs.map(([b, e]) => {
+        buf.writeDoubleLE(Math.pow(decode(b), decode(e)))
+        return buf.toString('hex')
+      })
+    }
+
     case 'search': {
       const fuse = new Fuse(cmd.docs, cmd.options || {})
       return fuse.search(cmd.query, cmd.searchOptions || undefined)

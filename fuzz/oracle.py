@@ -11,12 +11,18 @@ no Node dependency and never imports anything from here.
 from __future__ import annotations
 
 import json
+import struct
 import subprocess
 from pathlib import Path
 from types import TracebackType
 from typing import Any
 
 ORACLE_JS = Path(__file__).resolve().parent / "oracle.js"
+
+
+def float_bits_hex(value: float) -> str:
+    """A float64 as little-endian hex bits — exact, and JSON-safe."""
+    return struct.pack("<d", value).hex()
 
 
 class OracleError(RuntimeError):
@@ -104,6 +110,16 @@ class Oracle:
             options=options,
             searchOptions=search_options,
         )
+
+    def pow_batch(self, pairs: list[tuple[float, float]]) -> list[str]:
+        """``Math.pow`` for many pairs, as little-endian hex float bits.
+
+        Operands go over as hex too: exact in both directions, and JSON
+        cannot represent ``Infinity`` or ``NaN`` as numbers at all.
+        """
+        encoded = [[float_bits_hex(b), float_bits_hex(e)] for b, e in pairs]
+        result: list[str] = self.call(op="pow", pairs=encoded)
+        return result
 
     def create_index(
         self, keys: list[Any], docs: list[Any], options: dict[str, Any]
