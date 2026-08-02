@@ -10,7 +10,10 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass, field, fields, replace
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
+
+if TYPE_CHECKING:
+    from .search.token.inverted_index import InvertedIndexData
 
 from .helpers.get import get
 from .types import (
@@ -100,6 +103,15 @@ class FuseOptions:
     ignore_field_norm: bool = False
     #: How strongly the field-length norm affects scoring.
     field_norm_weight: float = 1.0
+
+    #: Internal. Corpus statistics handed to ``TokenSearch``, populated by
+    #: :class:`~fusejs.Fuse` when it builds the index — never by user
+    #: configuration. fuse.js smuggles the same value through the options
+    #: object as ``_invertedIndex``; keeping it a declared field means it
+    #: stays typed instead of becoming an untyped bag.
+    inverted_index: InvertedIndexData | None = field(
+        default=None, repr=False, compare=False
+    )
 
     def __post_init__(self) -> None:
         if self.token_match not in ("all", "any"):
