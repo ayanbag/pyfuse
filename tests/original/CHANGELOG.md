@@ -1,0 +1,527 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [7.5.0](https://github.com/krisk/Fuse/compare/v7.4.2...v7.5.0) (2026-07-13)
+
+### ⚠️ Behavior changes
+
+Every change in this release is a bug fix, but each one corrects a **scoring or ranking** bug. Scores and result ordering will shift for some queries. That is why this ships as a minor rather than a patch: the public API is unchanged and upgrading is a drop-in, but the results you get back can differ, and that should not arrive silently in a patch bump.
+
+If you assert on exact `score` values or on a specific result order, expect those assertions to need updating. Re-baseline them against 7.5.0 rather than pinning to 7.4.x, since the 7.4.x behavior was wrong in the cases below.
+
+* **Field-length normalisation now counts words correctly.** Tabs and newlines were not treated as word separators, so a multi-line or tab-delimited field was scored as though it were one long word, making it look far shorter than it is. Fields containing `\t`, `\n`, or `\r` now score differently ([#830](https://github.com/krisk/Fuse/issues/830)).
+* **Key weights are now normalised in object and keyless-logical search.** Weights that did not sum to `1` were applied unnormalised, skewing the relative influence of each key. If your `keys` weights do not already sum to `1`, your relative ranking changes ([#833](https://github.com/krisk/Fuse/issues/833)).
+* **`limit` now returns the correct top-N when scores tie.** A tie at the cutoff boundary could evict a result that should have been kept, so `limit` could return the *wrong* items, not merely the right items in a different order ([#835](https://github.com/krisk/Fuse/issues/835)).
+* **Bitap respects `minMatchCharLength` in the exact-match shortcut.** Matches shorter than `minMatchCharLength` were still reported via the exact-match fast path, so the `matches` array could contain entries it was configured to exclude ([#831](https://github.com/krisk/Fuse/issues/831)).
+
+### Bug Fixes
+
+* **bitap:** respect minMatchCharLength in exact-match shortcut ([dbb98b6](https://github.com/krisk/Fuse/commit/dbb98b6ace1811ed65e1cac28f3e1501d1de3f34)), closes [#831](https://github.com/krisk/Fuse/issues/831)
+* **fieldNorm:** count tabs and newlines as word separators ([6fe85b0](https://github.com/krisk/Fuse/commit/6fe85b087c675edc328b73f1d0088da73c09ab5e)), closes [#830](https://github.com/krisk/Fuse/issues/830)
+* **fieldNorm:** count word-starts instead of space transitions ([2946f97](https://github.com/krisk/Fuse/commit/2946f978881f4bc2f214b6c64fee96450dcceae2))
+* **scoring:** normalise key weights in object and keyless-logical search ([e164b61](https://github.com/krisk/Fuse/commit/e164b61d4d324e0207e1f790e55dd13fe59c74ae)), closes [#833](https://github.com/krisk/Fuse/issues/833)
+* **search:** keep the correct top-N under limit when scores tie ([437f8f3](https://github.com/krisk/Fuse/commit/437f8f32713f6d8647339516dd61b8344847b3ae)), closes [#835](https://github.com/krisk/Fuse/issues/835), thanks [@spokodev](https://github.com/spokodev) for the report and the fix
+
+### [7.4.2](https://github.com/krisk/Fuse/compare/v7.4.1...v7.4.2) (2026-06-05)
+
+
+### Bug Fixes
+
+* **types:** emit CommonJS declarations (.d.cts) for node16/nodenext ([#780](https://github.com/krisk/Fuse/issues/780)) ([33f5d29](https://github.com/krisk/Fuse/commit/33f5d290df034e50b0646125264ee4a6229def98))
+
+### [7.4.1](https://github.com/krisk/Fuse/compare/v7.4.0...v7.4.1) (2026-06-02)
+
+
+### Bug Fixes
+
+* **types:** add TypeScript declarations for fuse.js/worker-script ([6ef6c33](https://github.com/krisk/Fuse/commit/6ef6c33101f8f4387d8a1dc7a227e483a179231f)), closes [#828](https://github.com/krisk/Fuse/issues/828)
+* **types:** ship TypeScript declarations for fuse.js/worker ([572ad1e](https://github.com/krisk/Fuse/commit/572ad1e6fca0bce226afae88b33a6f2d3672f80f)), closes [#828](https://github.com/krisk/Fuse/issues/828)
+
+## [7.4.0](https://github.com/krisk/Fuse/compare/v7.4.0-beta.8...v7.4.0) (2026-05-30)
+
+## [7.4.0-beta.8](https://github.com/krisk/Fuse/compare/v7.4.0-beta.7...v7.4.0-beta.8) (2026-05-25)
+
+
+### Bug Fixes
+
+* **matches:** report array-path keys as dotted strings ([acd54e8](https://github.com/krisk/Fuse/commit/acd54e88b667002c602ff624f7d7f2cbc62f23ec))
+
+## [7.4.0-beta.7](https://github.com/krisk/Fuse/compare/v7.4.0-beta.6...v7.4.0-beta.7) (2026-05-22)
+
+
+### Features
+
+* **token-search:** add tokenMatch 'all' | 'any' for AND/OR ([#827](https://github.com/krisk/Fuse/issues/827)) ([9f979d0](https://github.com/krisk/Fuse/commit/9f979d093f519728f3e75b2a5ab569dcb8c5ce6b))
+
+
+### Bug Fixes
+
+* **docs:** reflect data edits in playground demo ([#825](https://github.com/krisk/Fuse/issues/825)) ([6eff909](https://github.com/krisk/Fuse/commit/6eff909b5b6acf9ecb3ab20429bc5d08636a5d5c))
+
+## [7.4.0-beta.6](https://github.com/krisk/Fuse/compare/v7.4.0-beta.5...v7.4.0-beta.6) (2026-05-14)
+
+
+### Bug Fixes
+
+* **bitap:** restrict highlight indices to matched window ([622f105](https://github.com/krisk/Fuse/commit/622f105a61d1c1c1cf1bec87024b490f85c92903)), closes [#792](https://github.com/krisk/Fuse/issues/792) [#505](https://github.com/krisk/Fuse/issues/505) [#611](https://github.com/krisk/Fuse/issues/611) [#691](https://github.com/krisk/Fuse/issues/691) [#793](https://github.com/krisk/Fuse/issues/793)
+
+## [7.4.0-beta.5](https://github.com/krisk/Fuse/compare/v7.4.0-beta.4...v7.4.0-beta.5) (2026-05-10)
+
+
+### Features
+
+* **token-search:** add customizable tokenizer with unicode-aware default ([8e55cae](https://github.com/krisk/Fuse/commit/8e55cae563f8e9f6a04b7ef0bb08883a74f26fa8)), closes [#821](https://github.com/krisk/Fuse/issues/821)
+
+
+### Bug Fixes
+
+* **index:** correct doc-index alignment for Fuse<string> with blank docs ([0b8e3ca](https://github.com/krisk/Fuse/commit/0b8e3ca2d29e1666f38da557d93ae1790086f9ea))
+
+## [7.4.0-beta.4](https://github.com/krisk/Fuse/compare/v7.4.0-beta.3...v7.4.0-beta.4) (2026-04-28)
+
+## [7.4.0-beta.3](https://github.com/krisk/Fuse/compare/v7.4.0-beta.2...v7.4.0-beta.3) (2026-04-26)
+
+
+### Bug Fixes
+
+* **match:** explicitly reject useTokenSearch in Fuse.match ([3959d91](https://github.com/krisk/Fuse/commit/3959d91758dcbe6b0f10964775c0a7623c854f47))
+* **workers:** match Fuse ordering and reject non-cloneable options ([d571390](https://github.com/krisk/Fuse/commit/d571390aea9dead9927b4c11d3cfb5f94c42800c))
+* **workers:** reject useTokenSearch in FuseWorker ([8c6183d](https://github.com/krisk/Fuse/commit/8c6183d5b1193700f78ded21555ca1dea941cbfb))
+
+## [7.4.0-beta.2](https://github.com/krisk/Fuse/compare/v7.4.0-beta.1...v7.4.0-beta.2) (2026-04-17)
+
+
+### Bug Fixes
+
+* **core:** invalidate searcher cache on collection mutation ([fcf4228](https://github.com/krisk/Fuse/commit/fcf42285a6012d54d3a2a3f21cadbc27437be9de))
+* correct fieldCount accounting and add reverse lookup in inverted index ([54e702c](https://github.com/krisk/Fuse/commit/54e702cbc59ad94c98866232c01c8bb976aada58))
+* guard against empty-string crash in fieldNorm ([e550ab1](https://github.com/krisk/Fuse/commit/e550ab119302f79b6cd6ff0fa44653dd6ea97354))
+* skip consecutive spaces in fieldNorm word counting ([5929af6](https://github.com/krisk/Fuse/commit/5929af6a1e0a8b0aede23fa7fca9cde292ead728))
+* **token-search:** renumber inverted index after doc removal ([ea9356d](https://github.com/krisk/Fuse/commit/ea9356d12bca8bf0b997c758a1aa001f04d12244))
+* **types:** resolve typecheck errors and align KeyStore types ([dbc115d](https://github.com/krisk/Fuse/commit/dbc115d5cc39ef15382bc7bb7c31974d34f3570a))
+* typo in parseQuery comments ("once" → "ones") ([be2a8dc](https://github.com/krisk/Fuse/commit/be2a8dc4f25699bd460be92b5ed42aa8dfbe7964))
+* use latest stable version in docs CDN links ([763e533](https://github.com/krisk/Fuse/commit/763e533bdc8c97b3bbc1df2c21a0504925e950c1))
+* **workers:** preserve global refIndex across shards ([e4217f9](https://github.com/krisk/Fuse/commit/e4217f9f233f840da0f671b3b62a25aa32f09c99))
+
+## [7.4.0-beta.1](https://github.com/krisk/Fuse/compare/v7.3.0...v7.4.0-beta.1) (2026-04-04)
+
+
+### Features
+
+* add FuseWorker for parallel search via Web Workers ([9ba192c](https://github.com/krisk/Fuse/commit/9ba192c51b1915ae26a35930b9c7a4ed0a264819))
+
+## [7.3.0](https://github.com/krisk/Fuse/compare/v7.2.0...v7.3.0) (2026-04-04)
+
+
+### Features
+
+* add BigInt support for indexing and search ([0ae662c](https://github.com/krisk/Fuse/commit/0ae662cb825e1c9db7cdaf8331aab992f293b508)), closes [#814](https://github.com/krisk/Fuse/issues/814)
+* add static Fuse.match() for single string matching ([460eb5b](https://github.com/krisk/Fuse/commit/460eb5be84b56525710602ec44e2af402ca09686))
+* add token search — per-term fuzzy matching with IDF scoring ([68c1dcf](https://github.com/krisk/Fuse/commit/68c1dcf981a60ef46387440dc550fc546254bae9))
+* getFn null return, escaped pipe in extended search, empty query returns all ([d33b735](https://github.com/krisk/Fuse/commit/d33b735f62ae2f149808a49ff0c185a04bee28d7)), closes [#800](https://github.com/krisk/Fuse/issues/800) [#765](https://github.com/krisk/Fuse/issues/765) [#728](https://github.com/krisk/Fuse/issues/728)
+* removeAt() now returns the removed item ([8cec7e2](https://github.com/krisk/Fuse/commit/8cec7e2f99a7063e0aa9a04b8cedf0813e169531)), closes [#675](https://github.com/krisk/Fuse/issues/675)
+* **search:** support keyless string entries in logical queries ([8695556](https://github.com/krisk/Fuse/commit/86955565a106514212639ecfd3ff45d492f4a0a3)), closes [#736](https://github.com/krisk/Fuse/issues/736)
+
+
+### Bug Fixes
+
+* **index:** coerce non-string array values to strings during indexing ([db0e181](https://github.com/krisk/Fuse/commit/db0e181e5db988d5fad8bee1e281fa20f8a69376)), closes [#738](https://github.com/krisk/Fuse/issues/738)
+* **index:** strip getFn from keys in toJSON() for safe serialization ([0f2a69b](https://github.com/krisk/Fuse/commit/0f2a69babf8c76faeb366c471e17430f5f6d8595)), closes [#798](https://github.com/krisk/Fuse/issues/798)
+* **lint:** suppress unused var in toJSON destructure ([d63c0e8](https://github.com/krisk/Fuse/commit/d63c0e8bd82e4c4d4cec5844a800e64d3b056b29))
+* merge overlapping match indices in extended search ([06c5e97](https://github.com/krisk/Fuse/commit/06c5e97c1b79f6e29d482a300eea99a9b6fad82f))
+* **search:** handle non-decomposable diacritics in stripDiacritics ([5a01f29](https://github.com/krisk/Fuse/commit/5a01f2994ffe48f7e0e4191f4cdeeabe6a3967a5)), closes [home-assistant/frontend#30399](https://github.com/home-assistant/frontend/issues/30399) [#816](https://github.com/krisk/Fuse/issues/816)
+* **search:** handle quoted tokens with inner spaces and quotes in extended search ([c226523](https://github.com/krisk/Fuse/commit/c22652342b2d15c12f5dc5870e6b4b0eef1d2247)), closes [#810](https://github.com/krisk/Fuse/issues/810)
+* **search:** inverse patterns now work correctly across multiple keys ([9351882](https://github.com/krisk/Fuse/commit/935188228ed50dc0a555b41eda47447ada59dd6b)), closes [#712](https://github.com/krisk/Fuse/issues/712)
+
+## [7.2.0](https://github.com/krisk/Fuse/compare/v7.1.0...v7.2.0) (2026-04-02)
+
+
+### Features
+
+* add `Fuse.use()` for runtime plugin registration ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+
+
+### Performance
+
+* inline Bitap score computation to reduce object allocation in hot loops ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* batch `removeAll` for O(n) bulk removes instead of O(n*k) ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* heap-based top-k selection when `limit` is set ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+* cache compiled searcher for repeated queries ([8546a9b](https://github.com/krisk/Fuse/commit/8546a9b0))
+
+
+### Bug Fixes
+
+* **search:** deduplicate and merge overlapping match indices ([60c393a](https://github.com/krisk/Fuse/commit/60c393a45f75e63ebbecd5e4913d539c8d4a3752)), closes [#735](https://github.com/krisk/Fuse/issues/735)
+* **search:** preserve original array indices in nested path traversal ([a1451be](https://github.com/krisk/Fuse/commit/a1451be8ad46d453799b330f6ad00c58996eb9df)), closes [#786](https://github.com/krisk/Fuse/issues/786)
+* **types:** correct key type in FuseSortFunctionMatch ([fecee16](https://github.com/krisk/Fuse/commit/fecee16f19dd5d8280260854717a9821256f6702)), closes [#811](https://github.com/krisk/Fuse/issues/811)
+* **types:** correct keys type in parseIndex parameter ([58c7c73](https://github.com/krisk/Fuse/commit/58c7c73bb8c015c46f583c7cdac377839f5c61ce)), closes [#794](https://github.com/krisk/Fuse/issues/794)
+
+## [7.1.0](https://github.com/krisk/Fuse/compare/v7.0.0...v7.1.0) (2025-02-03)
+
+
+### Features
+
+* add ignore diacritics ([e0fcdb1](https://github.com/krisk/Fuse/commit/e0fcdb15d491e7db28c4902727d2d859833ea9ee))
+* add option to ignore diacritics ([fb012b7](https://github.com/krisk/Fuse/commit/fb012b7388442f7dcc0facb43f0b2840057ca8c5))
+
+
+### Bug Fixes
+
+* remove console.log ([1c749a3](https://github.com/krisk/Fuse/commit/1c749a3f43d37d89233fdac9014009b3dac9e53d))
+* **typescript:** clarify input to `parseIndex` ([72b6e25](https://github.com/krisk/Fuse/commit/72b6e25e14663cdbea9dee297b60963c7d6a8983)), closes [#524](https://github.com/krisk/Fuse/issues/524) [#624](https://github.com/krisk/Fuse/issues/624)
+* **typescript:** clarify input to `parseIndex` ([78c628e](https://github.com/krisk/Fuse/commit/78c628e50f6b3b7d185eaa27ded60002ba9d15ef)), closes [#524](https://github.com/krisk/Fuse/issues/524) [#624](https://github.com/krisk/Fuse/issues/624)
+
+## [7.0.0](https://github.com/krisk/Fuse/compare/v6.6.2...v7.0.0) (2023-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Extension changed
+
+### Features
+
+* finish all but state handling of live demo ([9b5421a](https://github.com/krisk/Fuse/commit/9b5421a7febd1f57cbd504855ea375eec5d57843))
+* implementing reacting to option changes ([46c561c](https://github.com/krisk/Fuse/commit/46c561c05c97abd05f7ab7de7e78b03ede8d07da))
+* improve fuse keys ([c47f3d4](https://github.com/krisk/Fuse/commit/c47f3d49f9b0262164368b765e2cf8d053556359))
+* proper ESM exports ([eebcf2c](https://github.com/krisk/Fuse/commit/eebcf2c77b4c9869fab4bdbd93f3a15198514333))
+* properly configure monaco editors ([fe0d33e](https://github.com/krisk/Fuse/commit/fe0d33e3025857c3db9ada7f66d834a6fc36f076))
+
+
+### Bug Fixes
+
+* add favicon on public root ([bc155a3](https://github.com/krisk/Fuse/commit/bc155a31440438d29904aadfe9075225ceddc689))
+* add proper ESM exports in package.json ([98366b1](https://github.com/krisk/Fuse/commit/98366b1630c83e1c64eaae5cccf8f39403b7fc4d))
+* build fixes ([5969ca7](https://github.com/krisk/Fuse/commit/5969ca716a52aa24fafa476bee02140518202593))
+* double totalWeight ([5c0ab46](https://github.com/krisk/Fuse/commit/5c0ab467242d1de5d62bd3cdb812518e4b037c0f))
+* fixed browserconfig xml file ([ca0cbbb](https://github.com/krisk/Fuse/commit/ca0cbbbc2fa64d7e0511c86cced2d09d3ec8efcb))
+* fixed config, packages, and twitter social button ([bd7555c](https://github.com/krisk/Fuse/commit/bd7555cd0b8b990ca38faf8196a92207785e95a3))
+* fixed navbar ([29b2599](https://github.com/krisk/Fuse/commit/29b25990d592a797df51a3dc15c678defce56538))
+* fixed version display and active search plugin ([6e2a592](https://github.com/krisk/Fuse/commit/6e2a5922270a22bc9f1b827efd311608a2ea1839))
+* imports ([ec4e3bc](https://github.com/krisk/Fuse/commit/ec4e3bc1ee6ba4655642e5740cabb864bcb70275))
+* re-implement sidebar advertisements ([67a10cf](https://github.com/krisk/Fuse/commit/67a10cf8d8df22dd198a2e9c3ee5413631459d4a))
+* support -> donate for clarity of what it is ([ef99f56](https://github.com/krisk/Fuse/commit/ef99f5633d65e26cd555e847216bf231bcd43823))
+* vite SSR build fixes ([3ae8299](https://github.com/krisk/Fuse/commit/3ae8299faac02ca33ea9c7773ea34be2217d533c))
+
+### [6.6.2](https://github.com/krisk/Fuse/compare/v6.6.1...v6.6.2) (2022-05-11)
+
+
+### Bug Fixes
+
+* value fetched at the end must be a string ([1de1dff](https://github.com/krisk/Fuse/commit/1de1dffa3f16992e21d817370e2b5d9611d3ad6d)), closes [#661](https://github.com/krisk/Fuse/issues/661)
+
+### [6.6.1](https://github.com/krisk/Fuse/compare/v6.6.0...v6.6.1) (2022-05-06)
+
+
+### Bug Fixes
+
+* getFn to FuseOptionKeyObject ([80b87a9](https://github.com/krisk/Fuse/commit/80b87a9035b3dcecc92dc913ceb160045e1a95bd)), closes [#655](https://github.com/krisk/Fuse/issues/655)
+* **typescript:** type definition for `FuseOptionKeyObject, fixes [#655](https://github.com/krisk/Fuse/issues/655) ([4acabb6](https://github.com/krisk/Fuse/commit/4acabb686f9a1a95adc766bc2fb387c0ce0b477c))
+* **typescript:** type definition for FuseOptionKeyObject ([0a790b5](https://github.com/krisk/Fuse/commit/0a790b516efec2e6c5539bdd40d04889e6252dfe)), closes [#655](https://github.com/krisk/Fuse/issues/655) [#656](https://github.com/krisk/Fuse/issues/656)
+
+## [6.6.0](https://github.com/krisk/Fuse/compare/v6.5.3...v6.6.0) (2022-05-03)
+
+
+### Features
+
+* allow passing getFn for a specific key ([1d445b9](https://github.com/krisk/Fuse/commit/1d445b9999e26d6eefecbdd333d46be01aff06e5)), closes [#627](https://github.com/krisk/Fuse/issues/627)
+
+
+### Bug Fixes
+
+* excessive splitting in parseQuery ([2c78022](https://github.com/krisk/Fuse/commit/2c78022c6ccb424e1013dc486649a7d6388df193))
+* type mismatch on toJSON ([f5425ea](https://github.com/krisk/Fuse/commit/f5425ea1bd6b95eae912b8dab68c9e3cac0ad27f))
+
+### [6.5.3](https://github.com/krisk/Fuse/compare/v6.5.2...v6.5.3) (2021-12-23)
+
+
+### Bug Fixes
+
+* **logical:** scoring for logical OR ([6f6af51](https://github.com/krisk/Fuse/commit/6f6af51cc39058fafea6b126f7120afc4f7c192a)), closes [#593](https://github.com/krisk/Fuse/issues/593)
+
+### [6.5.2](https://github.com/krisk/Fuse/compare/v6.5.1...v6.5.2) (2021-12-23)
+
+### [6.5.1](https://github.com/krisk/Fuse/compare/v6.5.0...v6.5.1) (2021-12-23)
+
+
+### Bug Fixes
+
+* rollback min node version ([9918f67](https://github.com/krisk/Fuse/commit/9918f67ba9b6b9b54e53576312fa33a51f428a9d))
+
+## [6.5.0](https://github.com/krisk/Fuse/compare/v6.4.6...v6.5.0) (2021-12-22)
+
+
+### Features
+
+* **scoring:** field length norm weight ([a9e0080](https://github.com/krisk/Fuse/commit/a9e00804497a1bfd7a94040520417825c085c945))
+
+
+### Bug Fixes
+
+* **typescript:** add config declaration to types ([2f4de0c](https://github.com/krisk/Fuse/commit/2f4de0c5ce061808f460de7f399b56a06539d4d5))
+
+### [6.4.6](https://github.com/krisk/Fuse/compare/v6.4.5...v6.4.6) (2021-01-05)
+
+
+### Bug Fixes
+
+* **typescript:** fix search typings ([94766b2](https://github.com/krisk/Fuse/commit/94766b2ffcc2be0e5f15daa9a29cd92adbe2647a)), closes [#527](https://github.com/krisk/Fuse/issues/527)
+
+### [6.4.5](https://github.com/krisk/Fuse/compare/v6.4.4...v6.4.5) (2021-01-01)
+
+
+### Bug Fixes
+
+* **ts:** export FuseIndex type ([2e60bee](https://github.com/krisk/Fuse/commit/2e60bee242c7b82f0d014a3a35281b34bc6b62fb)), closes [#519](https://github.com/krisk/Fuse/issues/519)
+
+### [6.4.4](https://github.com/krisk/Fuse/compare/v6.4.3...v6.4.4) (2020-12-29)
+
+
+### Bug Fixes
+
+* **extended:** correctly score include-match results ([443c863](https://github.com/krisk/Fuse/commit/443c863c44a48225510057d7597cb743fda2d25f)), closes [#522](https://github.com/krisk/Fuse/issues/522)
+
+### [6.4.3](https://github.com/krisk/Fuse/compare/v6.4.2...v6.4.3) (2020-10-30)
+
+
+### Bug Fixes
+
+* **extended:** ignoreLocation when useExtendedSearch is true ([8f67ac9](https://github.com/krisk/Fuse/commit/8f67ac985d3440c20d93ce1e1c5ba66f384ea9bf)), closes [#465](https://github.com/krisk/Fuse/issues/465)
+
+### [6.4.2](https://github.com/krisk/Fuse/compare/v6.4.1...v6.4.2) (2020-10-20)
+
+
+### Bug Fixes
+
+* if null in array ([740a500](https://github.com/krisk/Fuse/commit/740a5004763d84b285075a2cece4f37bc5fa2830))
+
+### [6.4.1](https://github.com/krisk/Fuse/compare/v6.4.0...v6.4.1) (2020-07-26)
+
+
+### Bug Fixes
+
+* handle booleans in the data ([226d868](https://github.com/krisk/Fuse/commit/226d868a1102402e1e773db305ddd3928ae92f79)), closes [#469](https://github.com/krisk/Fuse/issues/469)
+
+## [6.4.0](https://github.com/krisk/Fuse/compare/v6.3.1...v6.4.0) (2020-06-28)
+
+
+### Features
+
+* **extended:** add ability to search actual exact string ([350283f](https://github.com/krisk/Fuse/commit/350283f45a9affe05c6b3176bb5a5a037916de58))
+
+### [6.3.1](https://github.com/krisk/Fuse/compare/v6.3.0...v6.3.1) (2020-06-24)
+
+
+### Bug Fixes
+
+* **logical:** scores in logical query operators are ignored ([e357229](https://github.com/krisk/Fuse/commit/e357229846fff585707903c93f556d1562fbabba)), closes [#449](https://github.com/krisk/Fuse/issues/449)
+
+## [6.3.0](https://github.com/krisk/Fuse/compare/v6.2.1...v6.3.0) (2020-06-23)
+
+
+### Features
+
+* provide alternative array notation for nested paths ([7077fbe](https://github.com/krisk/Fuse/commit/7077fbe5f40872f9555645dbad2e6729ca55a5d4)), closes [#432](https://github.com/krisk/Fuse/issues/432)
+
+
+### Bug Fixes
+
+* **typescript:** add types for string and object together for the key property ([85fb211](https://github.com/krisk/Fuse/commit/85fb211a22bf5921ecefab9ecf3f8e2647f46b49))
+* **typescript:** add typing for nested paths with array notation ([dfa4823](https://github.com/krisk/Fuse/commit/dfa48238f9a28600fd36677f958f43bb3cab4c03))
+
+# Version 6.0.0
+
+- Added [logical query expressions](https://fusejs.io/api/query.html) (#411)
+- Added ability to dynamically add/remove items (#412)
+- Mix different `options:key` types during initialization (#413)
+- Improved indexing performances, as well storage savings (#405, #407)
+
+# Version 5.2.0
+
+- Addresses #390, #376, #382, #385
+- Removed ngram search and extended bitap to search long patterns
+
+# Version 5.0.9-beta
+
+- Fixed Fuse global name. Erroneously set as 'Fuse.js'
+
+# Version 5.0.8-beta
+
+- Changed bundler to Rollup.
+- Added ES6 modules for bundlers and browsers (`fuse.esm.js`) (fixed [#262](#262))
+- Added CommonJS builds (`fuse.common.js`)
+
+## Breaking Changes
+
+- The minimified version is finally actually called `fuse.min.js`
+
+# Version 5.0.7-beta
+
+- Fixed (#363)
+
+# Version 5.0.6-beta
+
+- Fixed (#357)
+
+# Version 5.0.3-beta
+
+- A couple of fixes, courtesy of [Daniel Dickinson](https://github.com/cshoredaniel):
+  - Generate multiple targets with webpack (#359)
+  - Fixed TypeError (#360)
+
+# Version 5.0.2-beta
+
+- Added indexing for increased performance over large lists
+  - Added `Fuse.createIndex`, which created and returns an index. This function can be used to pre-generate the index, which you can then save, and ultimately pass to the `Fuse` instance.
+
+## Breaking Changes
+
+- Removed `id` option
+- Changed format of the search results
+- Updated TypeScript definitions
+
+# Version 5.0.1-beta
+
+- Removed `matchAllTokens` option.
+
+# Version 5.0.0-beta
+
+- Added ability to search patterns longer > 32 characters
+- Removed `maxPatternLength` option
+
+# Version 4.1.0-beta
+
+- Perf optimization on nested array search
+
+# Version 4.0.4-beta
+
+- Re-added license information
+
+# Version 4.0.3-beta
+
+- Increased Node version
+
+# Version 4.0.2-beta
+
+- Added missing tests
+
+# Version 4.0.1-beta
+
+- Removed unused codepath
+- Fixed case sensitivity check
+- Upgraded dev dependencies
+
+# Version 4.0.0-beta
+
+- Added extended search [Discussion](https://github.com/krisk/Fuse/issues/356)
+- Removed tokenization [Discussion](https://github.com/krisk/Fuse/issues/355)
+
+# Version 3.6.0
+
+- Improved error handling for keys
+
+# Version 3.5.0
+
+- Fixed #341, adjusting weights into the calculation
+- Improved performance by ~10% (really can only be seen when you have 10k+ items)
+
+# Version 3.4.3
+
+- Fixed #261
+- Rewrote tests to Jest framework
+- Wrote tests for TypeScript typings
+- Cleanup build
+
+# Version 3.4.2
+
+- Fixed #288
+
+# Version 3.4.1
+
+- Ensured `dist/` content is production ready (both full and min versions) #283
+
+# Version 3.4.0
+
+- Upgraded build tool to Webpack 4. New `dist/` output.
+
+# Version 3.3.1
+
+- Fixed the circular JSON TypeError (#197). Thanks [ThinkTankShark](https://github.com/ThinkTankShark)!
+
+# Version 3.2.1
+
+- Fixed issue in which more fuzzy matches would weaken a score instead of strengthening it (#233)
+
+# Version 3.2.0
+
+- Give better result for exact match when using weighted keys (#192)
+
+# Version 3.1.0
+
+- Added match index location for array key (#183)
+- Allow searching deep nested numbers (#189)
+
+# Version 3.0.5
+
+- Escape special characters in search pattern (#168)
+
+# Version 3.0.4
+
+- Random bug fixes (#162)
+
+# Version 3.0.0
+
+- Removed Bower support
+- Modified library into a more more palatable architecture, where the Bitap portion is now its own separate module.
+
+### BREAKING CHANGES
+
+- Removed `include` option in favor of more explicit booleans: `includeScore` and `includeMatches`. Both are `false` by default.
+- Removed `searchFn` option, as this (for now) will remain a Bitap based solution
+
+# Version 2.7.4
+
+- Reverted to previous version, thus fixing breaking changes (a little bit of a version match here)
+
+# Version 2.6.2
+
+- Revert back to previous version
+
+# Version 2.6.2
+
+- Fix typings based on TypeScript guidelines (#129)
+
+# Version 2.6.0
+
+- Added Typescript definition
+- Added ability to set min/max matched character lengths when returning the matched indices (#122)
+
+# Version 2.5.0
+
+- Added option to search by matching all tokens (in every record) when `matchAllTokens:true` (#95)
+
+# Version 2.3.0
+
+- Added token separator to options, when `tokenize:true` (#93)
+- General code clean up (#88)
+- Bunch of other bug fixes
+
+# Version 2.2.0
+
+- Added option to include matched indices (#6)
+- Added ability to search with weighted keys (#62)
+
+# Version 2.1.0-beta
+
+- Added ability to search with weighted keys (#62)
+
+# Version 2.0.0
+
+- Modified search algorithm to search individual words AND the full string, computing the final score as a function of both. This yields better scoring accuracy (#41)
+- Changed exact substrings to not have a score of zero. That is searching for "hell" in "hello" will not yield a score of zero, while searching for "hello" will (#63)
+- Added `verbose` option, which will print to the console useful information, mostly for debugging
+- Improved code structure.
+- Added version information within Fuse itself
+- Added this Changelog (#64)
+- Added fallback when pattern length is greater than machine word length (i.e, > 32 characters) (#38)
+- Allowed results with a value of 0 to be returned (#73)

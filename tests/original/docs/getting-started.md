@@ -1,0 +1,128 @@
+---
+title: Getting Started
+description: Install Fuse.js via npm, yarn, or CDN. Quick start guide with code examples, build variants, and import paths for ES modules and CommonJS.
+---
+
+# Getting Started
+
+## Installation
+
+::: code-group
+
+```sh [npm]
+npm install fuse.js
+```
+
+```sh [pnpm]
+pnpm add fuse.js
+```
+
+```sh [yarn]
+yarn add fuse.js
+```
+
+```sh [bun]
+bun add fuse.js
+```
+
+:::
+
+#### Importing
+
+::: code-group
+
+```js [ESM]
+import Fuse from 'fuse.js'
+```
+
+```js [CJS]
+const Fuse = require('fuse.js')
+```
+
+:::
+
+#### CDN
+
+::: code-group
+
+```html [script tag]
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.4.2"></script>
+```
+
+```html [ES module]
+<script type="module">
+  import Fuse from 'https://cdn.jsdelivr.net/npm/fuse.js@7.4.2/dist/fuse.mjs'
+</script>
+```
+
+:::
+
+Also available on [unpkg](https://unpkg.com/fuse.js).
+
+#### Deno
+
+```typescript
+// @deno-types="https://deno.land/x/fuse@v7.4.2/dist/fuse.d.ts"
+import Fuse from 'https://deno.land/x/fuse@v7.4.2/dist/fuse.min.mjs'
+```
+
+## Quick Start
+
+```js
+import Fuse from 'fuse.js'
+
+const books = [
+  { title: "Old Man's War", author: 'John Scalzi' },
+  { title: 'The Lock Artist', author: 'Steve Hamilton' }
+]
+
+const fuse = new Fuse(books, {
+  keys: ['title', 'author']
+})
+
+const results = fuse.search('jon')
+// [{ item: { title: "Old Man's War", author: "John Scalzi" }, refIndex: 0 }]
+```
+
+Fuse.js searches the `keys` you specify and returns results ranked by relevance. A score of `0` is a perfect match; `1` is a complete mismatch.
+
+## Builds
+
+Fuse.js ships two builds:
+
+| Build | Includes | Gzip |
+|-------|----------|------|
+| **Full** | Fuzzy + extended + logical + token search | ~8.6 kB |
+| **Basic** | Fuzzy search only | ~6.8 kB |
+
+Import paths:
+
+```js
+// Full build (default)
+import Fuse from 'fuse.js'
+
+// Basic build
+import Fuse from 'fuse.js/basic'
+
+// Minified variants
+import Fuse from 'fuse.js/min'
+import Fuse from 'fuse.js/min-basic'
+```
+
+Build files in `dist/`:
+
+| | UMD | CommonJS | ES Module |
+|---|---|---|---|
+| **Full** | fuse.js | fuse.cjs | fuse.mjs |
+| **Basic** | fuse.basic.js | fuse.basic.cjs | fuse.basic.mjs |
+| **Full (min)** | fuse.min.js | — | fuse.min.mjs |
+| **Basic (min)** | fuse.basic.min.js | — | fuse.basic.min.mjs |
+
+The basic build does not include extended search or token search. If you need those features with the basic build, register them at runtime with `Fuse.use()`:
+
+```js
+import Fuse from 'fuse.js/basic'
+import { ExtendedSearch } from 'fuse.js'
+
+Fuse.use(ExtendedSearch)
+```

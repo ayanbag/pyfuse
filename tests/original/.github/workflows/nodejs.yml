@@ -1,0 +1,34 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install --prefer-offline --no-audit --no-fund
+      # The build tool (tsdown) requires Node >= 22.18. The published library and
+      # its tests still run on Node 20: that leg tests the committed dist rather
+      # than rebuilding. Node 22/24 rebuild from source before testing.
+      - run: npm run build
+        if: matrix.node != '20'
+      - run: npm run test

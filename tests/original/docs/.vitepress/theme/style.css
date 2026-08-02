@@ -1,0 +1,274 @@
+@import url('https://use.fontawesome.com/releases/v5.7.1/css/all.css');
+@import url('https://fonts.bunny.net/css?family=dosis:500|inter:400,500,600,700');
+
+:root {
+  --vp-c-brand-1: #9066b8;
+  --vp-c-brand-2: #9066b8;
+  --vp-c-brand-3: #9066b8;
+  --vp-c-brand-soft: rgba(144, 102, 184, 0.14);
+
+  /* Keep code blocks dark in light mode (matches Vue.js docs convention) */
+  --vp-code-block-bg: #292d3e;
+
+  /* Inline code: muted blue-grey, matches Vue.js docs (#476582) */
+  --vp-code-color: #476582;
+
+  /* Code-group tab bar — dark background, light text (matches Vue.js docs) */
+  --vp-code-tab-bg: #292d3ef0;
+  --vp-code-tab-text-color: rgba(235, 235, 245, 0.6);
+  --vp-code-tab-hover-text-color: rgba(235, 235, 245, 0.86);
+  --vp-code-tab-active-text-color: #fff;
+  --vp-code-tab-divider: transparent;
+
+  --vp-font-family-base: 'Inter var experimental', 'Inter var', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --vp-font-family-mono: ui-monospace, 'SF Mono', 'SFMono-Regular', Menlo, Monaco, 'Cascadia Mono', Consolas, 'Liberation Mono', 'Noto Sans Mono', monospace;
+
+  /* Compatibility aliases — keep legacy --c-* in components working */
+  --c-brand: var(--vp-c-brand-1);
+  --c-brand-rgb: 144, 102, 184;
+  --c-text: var(--vp-c-text-1);
+  --c-text-lighter: var(--vp-c-text-2);
+  --c-text-lightest: var(--vp-c-text-3);
+  --c-border: var(--vp-c-divider);
+  --c-bg: var(--vp-c-bg);
+  --c-bg-light: var(--vp-c-bg-soft);
+  --c-bg-lighter: var(--vp-c-bg-alt);
+  --c-details-bg: var(--vp-c-bg-soft);
+  --c-tip: #42b983;
+  --c-badge-warning: #ca8a04;
+  --c-badge-warning-text: #fff;
+  --c-badge-danger: #da5961;
+}
+
+.dark {
+  --c-brand: var(--vp-c-brand-1);
+  --c-text: var(--vp-c-text-1);
+  --c-text-lighter: var(--vp-c-text-2);
+  --c-text-lightest: var(--vp-c-text-3);
+  --c-border: var(--vp-c-divider);
+  --c-bg: var(--vp-c-bg);
+  --c-bg-light: var(--vp-c-bg-soft);
+  --c-bg-lighter: var(--vp-c-bg-alt);
+  --c-details-bg: var(--vp-c-bg-soft);
+
+  /* Inline code: lighter muted blue-grey for dark mode */
+  --vp-code-color: #c9def1;
+}
+
+.VPNavBar .title {
+  font-family: 'Dosis', 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: normal;
+  font-size: 20px;
+}
+
+/* Span the navbar divider full width so it doesn't break under the logo */
+.VPNavBar.has-sidebar .divider {
+  padding-left: 0 !important;
+}
+
+/* Give the whole navbar one background so the logo column doesn't read as
+ * a separate component (VitePress goes transparent when has-sidebar at >=960px) */
+@media (min-width: 960px) {
+  .VPNavBar.has-sidebar:not(.home.top) {
+    background-color: var(--vp-nav-bg-color);
+  }
+
+  /* Drop the title's own bottom border; the navbar divider spans full width now */
+  .VPNavBarTitle.has-sidebar .title {
+    border-bottom-color: transparent !important;
+  }
+}
+
+.VPNavBar .VPImage.logo {
+  margin-right: 0.4rem;
+}
+
+.VPNavBar a:hover .VPImage.logo {
+  animation: fuse-logo-spin 0.5s ease-in-out 1;
+}
+
+@keyframes fuse-logo-spin {
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  to {
+    transform: rotate(180deg) scale(1);
+  }
+}
+
+.vp-doc h2 {
+  border-bottom: none;
+  margin-top: 32px;
+  padding-top: 16px;
+  padding-bottom: 0.5rem;
+}
+
+/* No underlines on doc links, even on hover */
+.vp-doc a,
+.vp-doc a:hover {
+  text-decoration: none;
+}
+
+/* Inline code inside a link should keep the neutral code color, not inherit
+ * the link's brand color (matches Vue.js docs) */
+.vp-doc a > code,
+.vp-doc a code {
+  color: var(--vp-c-text-1);
+}
+
+/* Code-group tab icons (npm, pnpm, yarn, bun) — same pattern Vue.js docs use */
+.vp-code-group [data-title]::before {
+  background: var(--icon) no-repeat center / contain;
+  width: 1em;
+  height: 1em;
+  margin-bottom: -0.2em;
+  margin-right: 0.5em;
+  display: inline-block;
+}
+
+.vp-code-group [data-title="npm"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23c12127' d='M2 2h28v28H2'/%3E%3Cpath fill='%23fff' d='M7.25 7.25h17.5v17.5h-3.5v-14H16v14H7.25'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="pnpm"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23f9ad00' d='M30 10.75h-8.749V2H30Zm-9.626 0h-8.75V2h8.75Zm-9.625 0H2V2h8.749ZM30 20.375h-8.749v-8.75H30Z'/%3E%3Cpath fill='%234e4e4e' d='M20.374 20.375h-8.75v-8.75h8.75Zm0 9.625h-8.75v-8.75h8.75ZM30 30h-8.749v-8.75H30Zm-19.251 0H2v-8.75h8.749Z'/%3E%3C/svg%3E");
+}
+
+html.dark .vp-code-group [data-title="pnpm"]::before {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23f9ad00' d='M30 10.75h-8.749V2H30Zm-9.626 0h-8.75V2h8.75Zm-9.625 0H2V2h8.749ZM30 20.375h-8.749v-8.75H30Z'/%3E%3Cpath fill='%23fff' d='M20.374 20.375h-8.75v-8.75h8.75Zm0 9.625h-8.75v-8.75h8.75ZM30 30h-8.749v-8.75H30Zm-19.251 0H2v-8.75h8.749Z'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="yarn"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%232c8ebb' d='M16 0a16 16 0 1 0 16 16A16 16 0 0 0 16 0zm8 23.45c-1.91.86-3.47 1.26-5 1.26c-1.86 0-3.35-.47-4.66-1.16c-.41.29-.94.57-1.54.72c-1 .26-2.04.11-3.11-.41a.76.76 0 0 1-.06-1.34c.03-.02.67-.4 1.29-1.27c-.35-.32-.7-.73-1.06-1.24a6.4 6.4 0 0 1-1.12-2.56a3.6 3.6 0 0 1-1.67-.64c-1.02-.63-1.73-1.66-2.12-3.06a.77.77 0 0 1 .66-.97c.02 0 .05-.01.07-.01c.02 0 1.87-.04 3.26.78c.08-.25.17-.5.26-.75c.4-.97 1-1.63 1.73-2.03c-.21-.63-.41-1.65.04-2.56C10.13 6 11.39 5.24 13.22 4.76c1.74-.45 2.95-.22 3.55.05c.53-.25 1.28-.45 2.27-.45h.11c1.11.05 2.17.48 2.97 1.26c.6.56 1.02 1.26 1.24 2.03c.6.67 1.06 1.43 1.4 2.24c.53-.09 1.11-.16 1.7-.16c.21 0 .43.01.64.04c.63.06 1.24.28 1.75.64c.76.53 1.25 1.37 1.42 2.37c.24 1.46-.2 2.97-1.25 4.36c-1.11 1.46-2.93 2.4-5.55 2.91c-.15 1.87-.81 3.34-1.86 4.4z'/%3E%3C/svg%3E");
+}
+
+.vp-code-group [data-title="bun"]::before {
+  content: "";
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1em' height='1em' viewBox='0 0 32 32'%3E%3Cpath fill='%23fbf0df' d='M29 17c0 5.65-5.82 10.23-13 10.23S3 22.61 3 17c0-3.5 2.24-6.6 5.66-8.44S14.21 4.81 16 4.81s3.32 1.54 7.34 3.71C26.76 10.36 29 13.46 29 17'/%3E%3Cpath fill='none' stroke='%23000' d='M16 27.65c7.32 0 13.46-4.65 13.46-10.65c0-3.72-2.37-7-5.89-8.85c-1.39-.75-2.46-1.41-3.37-2l-1.13-.69A6.14 6.14 0 0 0 16 4.35a6.9 6.9 0 0 0-3.3 1.23c-.42.24-.86.51-1.32.8c-.87.54-1.83 1.13-3 1.73C4.91 10 2.54 13.24 2.54 17c0 6 6.14 10.65 13.46 10.65Z'/%3E%3Cellipse cx='21.65' cy='18.62' fill='%23febbd0' rx='2.17' ry='1.28'/%3E%3Cellipse cx='10.41' cy='18.62' fill='%23febbd0' rx='2.17' ry='1.28'/%3E%3Cpath fill-rule='evenodd' d='M11.43 18.11a2 2 0 1 0-2-2.05a2.05 2.05 0 0 0 2 2.05m9.2 0a2 2 0 1 0-2-2.05a2 2 0 0 0 2 2.05'/%3E%3Cpath fill='%23fff' fill-rule='evenodd' d='M10.79 16.19a.77.77 0 1 0-.76-.77a.76.76 0 0 0 .76.77m9.2 0a.77.77 0 1 0 0-1.53a.77.77 0 0 0 0 1.53'/%3E%3Cpath fill='%23b71422' stroke='%23000' stroke-width='.75' d='M18.62 19.67a3.3 3.3 0 0 1-1.09 1.75a2.48 2.48 0 0 1-1.5.69a2.53 2.53 0 0 1-1.5-.69a3.28 3.28 0 0 1-1.08-1.75a.26.26 0 0 1 .29-.3h4.58a.27.27 0 0 1 .3.3Z'/%3E%3C/svg%3E");
+}
+
+/* Outline label ("On this page") — small uppercase to match Vue.js docs */
+.VPDocAsideOutline .outline-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vp-c-text-3);
+}
+
+/* Drop the full-height left border on the outline; keep only the active marker */
+.VPDoc .VPDocAsideOutline .content {
+  border-left: none !important;
+  padding-left: 0 !important;
+}
+
+/* Tighten the gap between the article and the aside column */
+.VPDoc .aside {
+  padding-left: 0;
+}
+
+/* Inner padding so the marker can overhang left without being clipped by
+ * .aside-container's overflow-x: hidden */
+.VPDoc .VPDocAside {
+  padding-left: 16px;
+}
+
+/* Active-item marker styled to match Vue.js docs */
+.VPDoc .VPDocAsideOutline .outline-marker {
+  width: 4px !important;
+  height: 20px !important;
+  border-radius: 4px !important;
+  left: -12px !important;
+}
+
+/* Bottom-of-page nav (Previous/Next) — strip the card style, match Vue.js docs */
+.VPDocFooter .prev-next .pager-link,
+.VPDocFooter .pager-link {
+  border: none !important;
+  border-radius: 0;
+  padding: 0;
+  background-color: transparent !important;
+}
+
+.VPDocFooter .pager-link:hover {
+  background-color: transparent;
+}
+
+.VPDocFooter .pager-link .desc {
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+}
+
+.VPDocFooter .pager-link.prev .desc::before {
+  content: "‹ ";
+}
+
+.VPDocFooter .pager-link.next .desc::after {
+  content: " ›";
+}
+
+.VPDocFooter .pager-link .title {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+
+.VPDocFooter .pager-link:hover .title {
+  text-decoration: underline;
+}
+
+/* Sponsor nav icon */
+.VPNavBarMenuLink[href$="/sponsor"]::before,
+.VPNavBarMenuLink[href$="/sponsor.html"]::before,
+.VPNavBarMenuLink[href$="/sponsor/"]::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23bf3989'%3E%3Cpath d='m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002Z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+  top: -1px;
+}
+
+/* Cloud nav icon */
+.VPNavBarMenuLink[href$="/cloud"]::before,
+.VPNavBarMenuLink[href$="/cloud.html"]::before {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  vertical-align: middle;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232c3e50'%3E%3Cpath d='M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: relative;
+  top: -1px;
+}
+
+.dark .VPNavBarMenuLink[href$="/cloud"]::before,
+.dark .VPNavBarMenuLink[href$="/cloud.html"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3E%3Cpath d='M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z'/%3E%3C/svg%3E");
+}
+
+/* Sidebar "New" badge for Token Search */
+.VPSidebarItem a[href$="/token-search"] .text::after,
+.VPSidebarItem a[href$="/token-search.html"] .text::after {
+  content: 'New';
+  font-size: 0.55em;
+  font-weight: 600;
+  color: var(--c-tip);
+  border: 1px solid var(--c-tip);
+  border-radius: 3px;
+  padding: 0 4px;
+  margin-left: 4px;
+  position: relative;
+  top: -2px;
+}
+

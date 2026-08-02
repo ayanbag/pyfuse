@@ -1,0 +1,1578 @@
+import Fuse from '../dist/fuse.mjs'
+import * as ErrorMsg from '../src/core/errorMessages'
+
+const defaultList = ['Apple', 'Orange', 'Banana']
+const defaultOptions = {}
+
+const setup = (itemList, overwriteOptions) => {
+  const list = itemList || defaultList
+  const options = { ...defaultOptions, ...overwriteOptions }
+
+  return new Fuse(list, options)
+}
+
+describe('Flat list of strings: ["Apple", "Orange", "Banana"]', () => {
+  let fuse
+  beforeEach(() => (fuse = setup()))
+
+  describe('When searching with an empty string', () => {
+    test('returns all items', () => {
+      const result = fuse.search('')
+      expect(result).toHaveLength(3)
+      expect(result[0].item).toBe('Apple')
+      expect(result[1].item).toBe('Orange')
+      expect(result[2].item).toBe('Banana')
+    })
+
+    test('returns all items for whitespace-only query', () => {
+      const result = fuse.search('   ')
+      expect(result).toHaveLength(3)
+    })
+
+    test('respects limit option', () => {
+      const result = fuse.search('', { limit: 2 })
+      expect(result).toHaveLength(2)
+    })
+  })
+
+  describe('When searching for the term "Apple"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Apple')))
+
+    test('we get a list of exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the index 0, representing ["Apple"]', () => {
+      expect(result[0].refIndex).toBe(0)
+    })
+  })
+
+  describe('When performing a fuzzy search for the term "ran"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('ran')))
+
+    test('we get a list of containing 2 items', () => {
+      expect(result).toHaveLength(2)
+    })
+
+    test('whose values represent the indices of ["Orange", "Banana"]', () => {
+      expect(result[0].refIndex).toBe(1)
+      expect(result[1].refIndex).toBe(2)
+    })
+  })
+
+  describe('When performing a fuzzy search for the term "nan"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('nan')))
+
+    test('we get a list of containing 2 items', () => {
+      expect(result).toHaveLength(2)
+    })
+
+    test('whose values represent the indices of ["Banana", "Orange"]', () => {
+      expect(result[0].refIndex).toBe(2)
+      expect(result[1].refIndex).toBe(1)
+    })
+  })
+
+  describe('When performing a fuzzy search for the term "nan" with a limit of 1 result', () => {
+    let result
+    beforeEach(() => (result = fuse.search('nan', { limit: 1 })))
+
+    test('we get a list of containing 1 item: [2]', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose values represent the indices of ["Banana", "Orange"]', () => {
+      expect(result[0].refIndex).toBe(2)
+    })
+  })
+})
+
+describe('Deep key search, with ["title", "author.firstName"]', () => {
+  const customBookList = [
+    {
+      title: "Old Man's War",
+      author: { firstName: 'John', lastName: 'Scalzi' }
+    },
+    {
+      title: 'The Lock Artist',
+      author: { firstName: 'Steve', lastName: 'Hamilton' }
+    },
+    { title: 'HTML5' },
+    {
+      title: 'A History of England',
+      author: { firstName: 1066, lastName: 'Hastings' }
+    }
+  ]
+  let fuse
+  beforeEach(
+    () =>
+      (fuse = setup(customBookList, { keys: ['title', 'author.firstName'] }))
+  )
+
+  describe('When searching for the term "Stve"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Stve')))
+
+    test('we get a list containing at least 1 item', () => {
+      expect(result.length).toBeGreaterThanOrEqual(1)
+    })
+
+    test('and the first item has the matching key/value pairs', () => {
+      expect(result[0].item).toMatchObject({
+        title: 'The Lock Artist',
+        author: { firstName: 'Steve', lastName: 'Hamilton' }
+      })
+    })
+  })
+
+  describe('When searching for the term "106"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('106')))
+
+    test('we get a list of exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value matches', () => {
+      expect(result[0].item).toMatchObject({
+        title: 'A History of England',
+        author: { firstName: 1066, lastName: 'Hastings' }
+      })
+    })
+  })
+})
+
+describe('Custom search function, with ["title", "author.firstName"]', () => {
+  const customBookList = [
+    {
+      title: "Old Man's War",
+      author: {
+        firstName: 'John',
+        lastName: 'Scalzi'
+      }
+    },
+    {
+      title: 'The Lock Artist',
+      author: {
+        firstName: 'Steve',
+        lastName: 'Hamilton'
+      }
+    }
+  ]
+  const customOptions = {
+    keys: ['title', 'author.firstName'],
+    getFn: (obj) => {
+      if (!obj) return null
+      obj = obj.author.lastName
+      return obj
+    }
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the term "Hmlt"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Hmlt')))
+
+    test('we get a list containing at least 1 item', () => {
+      expect(result.length).toBeGreaterThanOrEqual(1)
+    })
+
+    test('and the first item has the matching key/value pairs', () => {
+      expect(result[0].item).toMatchObject({
+        title: 'The Lock Artist',
+        author: { firstName: 'Steve', lastName: 'Hamilton' }
+      })
+    })
+  })
+
+  describe('When searching for the term "Stve"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Stve')))
+
+    test('we get a list of exactly 0 items', () => {
+      expect(result).toHaveLength(0)
+    })
+  })
+})
+
+describe('Include score in result list: ["Apple", "Orange", "Banana"]', () => {
+  let fuse
+  beforeEach(() => (fuse = setup(defaultList, { includeScore: true })))
+
+  describe('When searching for the term "Apple"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Apple')))
+
+    test('we get a list of exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the index 0, representing ["Apple"]', () => {
+      expect(result[0].refIndex).toBe(0)
+      expect(result[0].score).toBe(0)
+    })
+  })
+
+  describe('When performing a fuzzy search for the term "ran"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('ran')))
+
+    test('we get a list of containing 2 items', () => {
+      expect(result).toHaveLength(2)
+    })
+
+    test('whose values represent the indices, and have non-zero scores', () => {
+      expect(result[0].refIndex).toBe(1)
+      expect(result[0].score).not.toBe(0)
+      expect(result[1].refIndex).toBe(2)
+      expect(result[1].score).not.toBe(0)
+    })
+  })
+})
+
+describe('Include both ID and score in results list', () => {
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi'
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton'
+    }
+  ]
+  const customOptions = {
+    keys: ['title', 'author'],
+    includeScore: true
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the term "Stve"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Stve')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {
+      expect(result[0].item.ISBN).toBe('0312696957')
+    })
+
+    test('and has a score that is not zero', () => {
+      expect(result[0].score).not.toBe(0)
+    })
+  })
+})
+
+describe('Search when IDs are numbers', () => {
+  const customBookList = [
+    {
+      ISBN: 1111,
+      title: "Old Man's War",
+      author: 'John Scalzi'
+    },
+    {
+      ISBN: 2222,
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton'
+    }
+  ]
+  const customOptions = {
+    keys: ['title', 'author'],
+    id: 'ISBN',
+    includeScore: true
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the term "Stve"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Stve')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {
+      expect(result[0].item.ISBN).toBe(2222)
+    })
+
+    test('and has a score that is not zero', () => {
+      expect(result[0].score).not.toBe(0)
+    })
+  })
+})
+
+describe('Recurse into arrays', () => {
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction']
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: 'Steve Hamilton',
+      tags: ['fiction']
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: 'Remy Sharp',
+      tags: ['web development', 'nonfiction']
+    }
+  ]
+  const customOptions = {
+    keys: ['tags'],
+    threshold: 0,
+    includeMatches: true
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the tag "nonfiction"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('nonfiction')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {
+      expect(result[0].item.ISBN).toBe('0321784421')
+    })
+
+    test('with matched tag provided', () => {
+      const { matches } = result[0]
+      expect(matches[0]).toMatchObject({
+        indices: [[0, 9]],
+        value: 'nonfiction',
+        key: 'tags',
+        refIndex: 1
+      })
+    })
+  })
+})
+
+describe('Recurse into objects in arrays with null object in array', () => {
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: {
+        name: 'John Scalzi',
+        tags: [
+          {
+            value: 'American'
+          },
+          null
+        ]
+      }
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: {
+        name: 'Steve Hamilton',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: {
+        name: 'Remy Sharp',
+        tags: [
+          {
+            value: 'British'
+          },
+          null
+        ]
+      }
+    }
+  ]
+  const customOptions = {
+    keys: ['author.tags.value'],
+    threshold: 0
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the author tag "British"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('British')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {
+      expect(result[0].item.ISBN).toBe('0321784421')
+    })
+  })
+})
+
+describe('Recurse into arrays with empty/undefined elements', () => {
+  test('refIndex is correct when array has undefined gaps', () => {
+    const list = [{ tags: ['alpha', 'beta', undefined, 'delta'] }]
+    const fuse = new Fuse(list, {
+      keys: ['tags'],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('delta')
+    expect(result).toHaveLength(1)
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'delta',
+      key: 'tags',
+      refIndex: 3
+    })
+  })
+
+  test('refIndex is correct when nested content array is empty', () => {
+    const list = [
+      {
+        blocks: [
+          { content: [{ text: 'first' }] },
+          { content: [] },
+          { content: [{ text: 'third' }] }
+        ]
+      }
+    ]
+    const fuse = new Fuse(list, {
+      keys: ['blocks.content.text'],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('third')
+    expect(result).toHaveLength(1)
+    // refIndex is the innermost array index (position within content[])
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'third',
+      key: 'blocks.content.text',
+      refIndex: 0
+    })
+  })
+
+  test('array-path key is reported as a dotted string in matches', () => {
+    const list = [{ author: { firstName: 'Karl' } }]
+    const fuse = new Fuse(list, {
+      keys: [['author', 'firstName']],
+      threshold: 0,
+      includeMatches: true
+    })
+    const result = fuse.search('Karl')
+    expect(result).toHaveLength(1)
+    expect(result[0].matches[0]).toMatchObject({
+      value: 'Karl',
+      key: 'author.firstName'
+    })
+  })
+})
+
+describe('Recurse into objects in arrays', () => {
+  const customBookList = [
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: {
+        name: 'John Scalzi',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0312696957',
+      title: 'The Lock Artist',
+      author: {
+        name: 'Steve Hamilton',
+        tags: [
+          {
+            value: 'American'
+          }
+        ]
+      }
+    },
+    {
+      ISBN: '0321784421',
+      title: 'HTML5',
+      author: {
+        name: 'Remy Sharp',
+        tags: [
+          {
+            value: 'British'
+          }
+        ]
+      }
+    }
+  ]
+  const customOptions = {
+    keys: ['author.tags.value'],
+    threshold: 0
+  }
+  let fuse
+  beforeEach(() => (fuse = setup(customBookList, customOptions)))
+
+  describe('When searching for the author tag "British"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('British')))
+
+    test('we get a list containing exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the ISBN of the book', () => {
+      expect(result[0].item.ISBN).toBe('0321784421')
+    })
+  })
+})
+
+describe('Set new list on Fuse', () => {
+  const vegetables = ['Onion', 'Lettuce', 'Broccoli']
+  let fuse
+  beforeEach(() => {
+    fuse = setup()
+    fuse.setCollection(vegetables)
+    return fuse
+  })
+
+  describe('When searching for the term "Lettuce"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('Lettuce')))
+
+    test('we get a list of exactly 1 item', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('whose value is the index 0, representing ["Apple"]', () => {
+      expect(result[0].refIndex).toBe(1)
+    })
+  })
+})
+
+describe('Weighted search', () => {
+  const customBookList = [
+    {
+      title: "Old Man's War fiction",
+      author: 'John X',
+      tags: ['war']
+    },
+    {
+      title: 'Right Ho Jeeves',
+      author: 'P.D. Mans',
+      tags: ['fiction', 'war']
+    },
+    {
+      title: 'The life of Jane',
+      author: 'John Smith',
+      tags: ['john', 'smith']
+    },
+    {
+      title: 'John Smith',
+      author: 'Steve Pearson',
+      tags: ['steve', 'pearson']
+    }
+  ]
+
+  test('Invalid key entries throw errors', () => {
+    expect(() => {
+      setup(customBookList, {
+        keys: [
+          { name: 'title', weight: -10 },
+          { name: 'author', weight: 0.7 }
+        ]
+      })
+    }).toThrowError(ErrorMsg.INVALID_KEY_WEIGHT_VALUE('title'))
+
+    expect(() => {
+      setup(customBookList, {
+        keys: [{ weight: 10 }, { name: 'author', weight: 0.7 }]
+      })
+    }).toThrowError(ErrorMsg.MISSING_KEY_PROPERTY('name'))
+  })
+
+  describe('When searching for the term "John Smith" with author weighted higher', () => {
+    const customOptions = {
+      keys: [
+        { name: 'title', weight: 0.3 },
+        { name: 'author', weight: 0.7 }
+      ]
+    }
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('John Smith'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'The life of Jane',
+          author: 'John Smith',
+          tags: ['john', 'smith']
+        },
+        refIndex: 2
+      })
+    })
+  })
+
+  describe('When searching for the term "John Smith" with author weighted higher, with mixed key types', () => {
+    const customOptions = {
+      keys: ['title', { name: 'author', weight: 2 }]
+    }
+
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('John Smith'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'The life of Jane',
+          author: 'John Smith',
+          tags: ['john', 'smith']
+        },
+        refIndex: 2
+      })
+    })
+
+    test('Throws when key does not have a name property', () => {
+      expect(() => {
+        new Fuse(customBookList, {
+          keys: ['title', { weight: 2 }]
+        })
+      }).toThrow()
+    })
+  })
+
+  describe('When searching for the term "John Smith" with title weighted higher', () => {
+    const customOptions = {
+      keys: [
+        { name: 'title', weight: 0.7 },
+        { name: 'author', weight: 0.3 }
+      ]
+    }
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('John Smith'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'John Smith',
+          author: 'Steve Pearson',
+          tags: ['steve', 'pearson']
+        },
+        refIndex: 3
+      })
+    })
+  })
+
+  describe('When searching for the term "Man", where the author is weighted higher than title', () => {
+    const customOptions = {
+      keys: [
+        { name: 'title', weight: 0.3 },
+        { name: 'author', weight: 0.7 }
+      ]
+    }
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('Man'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: 'Right Ho Jeeves',
+          author: 'P.D. Mans',
+          tags: ['fiction', 'war']
+        },
+        refIndex: 1
+      })
+    })
+  })
+
+  describe('When searching for the term "Man", where the title is weighted higher than author', () => {
+    const customOptions = {
+      keys: [
+        { name: 'title', weight: 0.7 },
+        { name: 'author', weight: 0.3 }
+      ]
+    }
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('Man'))
+    })
+
+    test('We get the the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: "Old Man's War fiction",
+          author: 'John X',
+          tags: ['war']
+        },
+        refIndex: 0
+      })
+    })
+  })
+
+  describe('When searching for the term "War", where tags are weighted higher than all other keys', () => {
+    const customOptions = {
+      keys: [
+        { name: 'title', weight: 0.4 },
+        { name: 'author', weight: 0.1 },
+        { name: 'tags', weight: 0.5 }
+      ]
+    }
+    let fuse
+    let result
+    beforeEach(() => {
+      fuse = setup(customBookList, customOptions)
+      return (result = fuse.search('War'))
+    })
+
+    test('We get the exactly matching object', () => {
+      expect(result[0]).toMatchObject({
+        item: {
+          title: "Old Man's War fiction",
+          author: 'John X',
+          tags: ['war']
+        },
+        refIndex: 0
+      })
+    })
+  })
+})
+
+describe('Search location', () => {
+  const customList = [{ name: 'Hello World' }]
+  const customOptions = {
+    keys: ['name'],
+    includeScore: true,
+    includeMatches: true
+  }
+  let fuse
+
+  beforeEach(() => (fuse = setup(customList, customOptions)))
+
+  describe('When searching for the term "wor"', () => {
+    let result
+    let matches
+    beforeEach(() => {
+      result = fuse.search('wor')
+      return (matches = result[0].matches)
+    })
+
+    test('We get a list whose indices are found', () => {
+      // Highlights are restricted to the bitap-matched window (#792 fix).
+      // The match window is "wor" in "World" at positions 6-8; pre-fix
+      // there was also a stray [4,4] from the 'o' in "Hello".
+      expect(matches[0].indices).toEqual([[6, 8]])
+    })
+
+    test('with original text values', () => {
+      expect(matches[0].value).toBe('Hello World')
+    })
+  })
+})
+
+describe('Searching with default options', () => {
+  const customList = ['t te tes test tes te t']
+  let fuse
+
+  beforeEach(() => (fuse = new Fuse(customList, { includeMatches: true })))
+
+  describe('When searching for the term "test"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('test')))
+
+    // Pre-#792-fix this returned 4 indices covering every "t", "te", and
+    // "tes" partial in the text. After the fix, highlights are restricted
+    // to the actual matched window: the single "test" at 9-12.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
+    })
+  })
+})
+
+describe('Searching with findAllMatches', () => {
+  const customList = ['t te tes test tes te t']
+  let fuse
+
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        findAllMatches: true
+      }))
+  )
+
+  describe('When searching for the term "test"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('test')))
+
+    // Pre-#792-fix findAllMatches produced 7 indices because the scan
+    // extended to the end of text and the buggy mask marked every
+    // pattern-alphabet char. The flag still extends the bitap scan range,
+    // but bitap tracks only one bestLocation, so highlights are now the
+    // same single window as the default-options case.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
+    })
+  })
+})
+
+describe('Searching with pattern larger than MAX_BITS should not produce duplicate indices', () => {
+  const list = [{ title: '/images/payment/select-payment-icon.png' }]
+  const fuse = new Fuse(list, { includeMatches: true, keys: ['title'] })
+
+  test('indices are deduplicated and merged when query exceeds 32 chars', () => {
+    const result = fuse.search('images-payment-select-payment-icon')
+    expect(result).toHaveLength(1)
+    const indices = result[0].matches[0].indices
+
+    // Check no duplicates
+    for (let i = 1; i < indices.length; i++) {
+      expect(indices[i][0]).toBeGreaterThan(indices[i - 1][1])
+    }
+  })
+})
+
+describe('Searching with minCharLength', () => {
+  const customList = ['t te tes test tes te t']
+  let fuse
+
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        minMatchCharLength: 2
+      }))
+  )
+
+  describe('When searching for the term "test"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('test')))
+
+    // Pre-#792-fix this returned 3 indices ("te", "tes", "test"). After
+    // the fix, highlights are restricted to the actual matched window;
+    // minMatchCharLength: 2 is still applied, but only one run survives.
+    test('We get a single match covering the actual "test" window', () => {
+      expect(result[0].matches[0].indices).toEqual([[9, 12]])
+    })
+  })
+
+  describe('When searching for a string shorter than minMatchCharLength', () => {
+    let result
+    beforeEach(() => (result = fuse.search('t')))
+
+    test('We get no results', () => {
+      expect(result).toHaveLength(0)
+    })
+  })
+
+  // An item whose whole value equals the query hits the exact-match shortcut,
+  // a different code path than the substring case above. It must respect
+  // minMatchCharLength just the same.
+  describe('When an item exactly equals a query shorter than minMatchCharLength', () => {
+    const list = ['abc', 'abcde', 'abcdefgh']
+
+    test('the too-short exact match is excluded', () => {
+      const fuse = new Fuse(list, { minMatchCharLength: 5 })
+      expect(fuse.search('abc').map((r) => r.item)).not.toContain('abc')
+    })
+
+    test('an exact match that meets the minimum is kept', () => {
+      const fuse = new Fuse(list, { minMatchCharLength: 5 })
+      expect(fuse.search('abcde').map((r) => r.item)).toContain('abcde')
+    })
+
+    test('the token-search path enforces it too', () => {
+      const fuse = new Fuse(list, {
+        useTokenSearch: true,
+        minMatchCharLength: 5
+      })
+      expect(fuse.search('abc').map((r) => r.item)).not.toContain('abc')
+    })
+  })
+
+  describe('Main functionality', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'Dan',
+          lastName: 'Brown'
+        }
+      }
+    ]
+    const fuse = new Fuse(list, {
+      keys: ['title', 'author.firstName'],
+      includeMatches: true,
+      includeScore: true,
+      minMatchCharLength: 3
+    })
+
+    test('We get a result with no matches', () => {
+      const result = fuse.search('remy')
+
+      expect(result).toHaveLength(1)
+      expect(result[0].matches).toHaveLength(1)
+    })
+  })
+})
+
+describe('Searching with minCharLength and pattern larger than machine word size', () => {
+  const customList = [
+    'Apple pie is a tasty treat that is always best made by mom! But we love store bought too.',
+    'Banana splits are what you want from DQ on a hot day.  But a parfait is even better.',
+    'Orange sorbet is just a strange yet satisfying snack.  Chocolate seems to be more of a favourite though.'
+  ]
+
+  let fuse
+
+  beforeEach(
+    () =>
+      (fuse = new Fuse(customList, {
+        includeMatches: true,
+        findAllMatches: true,
+        includeScore: true,
+        minMatchCharLength: 20,
+        threshold: 0.6,
+        distance: 30
+      }))
+  )
+
+  describe('When searching for the term "American as apple pie is odd treatment of something made by mom"', () => {
+    let result
+
+    beforeEach(() => {
+      result = fuse.search(
+        'American as apple pie is odd treatment of something made by mom'
+      )
+    })
+
+    test('We get exactly 1 result', () => {
+      expect(result).toHaveLength(1)
+    })
+
+    test('Which corresponds to the first item in the list, with no matches', () => {
+      expect(result[0].refIndex).toBe(0)
+      expect(result[0].matches).toHaveLength(1)
+    })
+  })
+})
+
+describe('Sorted search results', () => {
+  const customList = [
+    {
+      title: 'Right Ho Jeeves',
+      author: { firstName: 'P.D', lastName: 'Woodhouse' }
+    },
+    {
+      title: 'The Code of the Wooster',
+      author: { firstName: 'P.D', lastName: 'Woodhouse' }
+    },
+    {
+      title: 'Thank You Jeeves',
+      author: { firstName: 'P.D', lastName: 'Woodhouse' }
+    }
+  ]
+  const customOptions = {
+    keys: ['title', 'author.firstName', 'author.lastName']
+  }
+  let fuse
+
+  beforeEach(() => (fuse = new Fuse(customList, customOptions)))
+
+  describe('When searching for the term "wood"', () => {
+    let result
+    beforeEach(() => (result = fuse.search('wood')))
+
+    test('We get the properly ordered results', () => {
+      expect(result[0].item.title).toBe('The Code of the Wooster')
+      expect(result[1].item.title).toBe('Right Ho Jeeves')
+      expect(result[2].item.title).toBe('Thank You Jeeves')
+    })
+  })
+})
+
+describe('Searching using string large strings', () => {
+  const list = [
+    {
+      text: 'pizza'
+    },
+    {
+      text: 'feast'
+    },
+    {
+      text: 'where in the world is carmen san diego'
+    }
+  ]
+
+  const options = {
+    shouldSort: true,
+    includeScore: true,
+    threshold: 0.6,
+    keys: ['text']
+  }
+
+  test('finds no matches when string is larger than 32 characters', () => {
+    const fuse = new Fuse(list, options)
+
+    let pattern = 'where exctly is carmen in the world san diego'
+    let result = fuse.search(pattern)
+    expect(result.length).toBe(1)
+    expect(result[0].item.text).toBe(list[2].text)
+  })
+
+  test('Test matches with very long patterns', () => {
+    let fuse = new Fuse(list, options)
+    let patterns = []
+
+    for (let i = 0; i < 66; ++i) {
+      patterns.push('w'.repeat(i))
+    }
+
+    const search = (pattern) => {
+      return fuse.search(pattern).length === 0
+    }
+
+    expect(search(patterns[32])).toBeTruthy()
+    expect(search(patterns[33])).toBeTruthy()
+    expect(search(patterns[34])).toBeTruthy()
+    expect(search(patterns[64])).toBeTruthy()
+    expect(search(patterns[65])).toBeTruthy()
+  })
+
+  it('With hyphens', () => {
+    const searchText = 'leverage-streams-to'
+    const fuseOptions = {
+      distance: 1000,
+      includeScore: true,
+      includeMatches: true,
+      keys: ['name', 'tag', 'description'],
+      minMatchCharLength: Math.floor(searchText.length * 0.6),
+      shouldSort: false
+    }
+    const fuse = new Fuse(
+      [
+        {
+          name: 'Streaming Service',
+          description: 'Leverage-streams-to-ingest, analyze, monitor.',
+          tag: 'Free'
+        }
+      ],
+      fuseOptions
+    )
+
+    const results = fuse.search(searchText)
+    expect(results[0].matches).toEqual([
+      {
+        indices: [[0, 18]],
+        key: 'description',
+        value: 'Leverage-streams-to-ingest, analyze, monitor.'
+      }
+    ])
+  })
+
+  it('With spaces', () => {
+    const searchText = 'leverage streams to'
+    const fuseOptions = {
+      distance: 1000,
+      includeScore: true,
+      includeMatches: true,
+      keys: ['name', 'tag', 'description'],
+      minMatchCharLength: Math.floor(searchText.length * 0.6),
+      shouldSort: false
+    }
+    const fuse = new Fuse(
+      [
+        {
+          name: 'Streaming Service',
+          description: 'Leverage streams to ingest, analyze, monitor.',
+          tag: 'Free'
+        }
+      ],
+      fuseOptions
+    )
+
+    const results = fuse.search(searchText)
+    expect(results[0].matches).toEqual([
+      {
+        indices: [[0, 18]],
+        key: 'description',
+        value: 'Leverage streams to ingest, analyze, monitor.'
+      }
+    ])
+  })
+})
+
+describe('Searching taking into account field length', () => {
+  const list = [
+    {
+      ISBN: '0312696957',
+      title: 'The Lock war Artist nonficon',
+      author: 'Steve Hamilton',
+      tags: ['fiction war hello no way']
+    },
+    {
+      ISBN: '0765348276',
+      title: "Old Man's War",
+      author: 'John Scalzi',
+      tags: ['fiction no']
+    }
+  ]
+
+  test('The entry with the shorter field length appears first', () => {
+    const fuse = new Fuse(list, {
+      keys: ['title']
+    })
+    let result = fuse.search('war')
+
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0765348276')
+    expect(result[1].item.ISBN).toBe('0312696957')
+  })
+
+  test('Weighted entries still are given high precedence', () => {
+    const fuse = new Fuse(list, {
+      keys: [
+        { name: 'tags', weight: 0.8 },
+        { name: 'title', weight: 0.2 }
+      ]
+    })
+    let result = fuse.search('war')
+    expect(result.length).toBe(2)
+    expect(result[0].item.ISBN).toBe('0312696957')
+    expect(result[1].item.ISBN).toBe('0765348276')
+  })
+})
+
+describe('Ignore location and field length norm', () => {
+  const list = [
+    'beforeEach',
+    'async beforeEach test',
+    'assert.async in beforeEach',
+    'Module with Promise-aware beforeEach',
+    'Promise-aware return values without beforeEach/afterEach',
+    'Module with Promise-aware afterEach',
+    'before',
+    'before (skip)'
+  ]
+
+  test('Check order of entries when location and field-length norm are ignored', () => {
+    const options = {
+      includeScore: true,
+      ignoreLocation: true,
+      ignoreFieldNorm: true
+    }
+    const fuse = new Fuse(list, options)
+    let result = fuse.search('promiseawarebeforeEach')
+
+    expect(result).toMatchSnapshot()
+  })
+
+  test('Check order of entries when location and field-length norm are not ignored', () => {
+    const options = {
+      includeScore: true
+    }
+    const fuse = new Fuse(list, options)
+    let result = fuse.search('beforeEach')
+    expect(result).toMatchSnapshot()
+  })
+})
+
+describe('Standard dotted keys', () => {
+  test('We get mathes', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'rmy',
+          lastName: 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: ['title', ['author', 'firstName']],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+
+  test('We get a result with no matches', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          'first.name': 'Remy',
+          'last.name': 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          'first.name': 'rmy',
+          'last.name': 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: ['title', ['author', 'first.name']],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+
+  test('Keys with weights', () => {
+    const list = [
+      {
+        title: 'HTML5',
+        author: {
+          firstName: 'Remy',
+          lastName: 'Sharp'
+        }
+      },
+      {
+        title: 'Angels & Demons',
+        author: {
+          firstName: 'rmy',
+          lastName: 'Brown'
+        }
+      }
+    ]
+
+    const fuse = new Fuse(list, {
+      keys: [{ name: 'title' }, { name: ['author', 'firstName'] }],
+      includeMatches: true,
+      includeScore: true
+    })
+
+    const result = fuse.search('remy')
+
+    expect(result).toHaveLength(2)
+  })
+})
+
+describe('Breaking values', () => {
+  test('Booleans are still processed', () => {
+    const data = [{ first: false }]
+    const options = { keys: [{ name: 'first' }] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('fa')
+    expect(result).toHaveLength(1)
+  })
+
+  test('BigInts are still processed', () => {
+    const data = [{ id: 9007199254740993n }, { id: 1234567890n }]
+    const options = { keys: ['id'] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('1234567890')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.id).toBe(1234567890n)
+  })
+
+  test('Object values are ignored', () => {
+    const data = [{ a: 'hello' }, { a: {} }]
+    const options = { keys: ['a'] }
+    const fuse = new Fuse(data, options)
+
+    const result = fuse.search('hello')
+    expect(result).toHaveLength(1)
+  })
+})
+
+describe('Searching ignoring diactrictics', () => {
+  const list = [
+    {
+      text: 'déjà'
+    },
+    {
+      text: 'cafe'
+    }
+  ]
+
+  const options = {
+    ignoreDiacritics: true,
+    threshold: 0,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: query with diactrictics, list with diactrictics', () => {
+    let result = fuse.search('déjà')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(0)
+  })
+
+  test('Search: query without diactrictics, list with diactrictics', () => {
+    let result = fuse.search('deja')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(0)
+  })
+
+  test('Search: query with diactrictics, list without diactrictics', () => {
+    let result = fuse.search('café')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(1)
+  })
+
+  test('Search: query without diactrictics, list without diactrictics', () => {
+    let result = fuse.search('cafe')
+    expect(result).toHaveLength(1)
+    expect(result[0].refIndex).toBe(1)
+  })
+})
+
+describe('Searching ignoring non-decomposable diacritics', () => {
+  const list = [
+    { text: 'łódź' }, // Polish city
+    { text: 'straße' }, // German street
+    { text: 'ørsted' }, // Danish name
+    { text: 'đorđe' }, // Serbian name
+    { text: 'ħobż' } // Maltese bread
+  ]
+
+  const options = {
+    ignoreDiacritics: true,
+    threshold: 0,
+    keys: ['text']
+  }
+  const fuse = new Fuse(list, options)
+
+  test('Search: ł → l (Polish)', () => {
+    const result = fuse.search('lodz')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('łódź')
+  })
+
+  test('Search: ß → ss (German)', () => {
+    const result = fuse.search('strasse')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('straße')
+  })
+
+  test('Search: ø → o (Danish)', () => {
+    const result = fuse.search('orsted')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('ørsted')
+  })
+
+  test('Search: đ → d (Serbian)', () => {
+    const result = fuse.search('dorde')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('đorđe')
+  })
+
+  test('Search: ħ → h (Maltese)', () => {
+    const result = fuse.search('hobz')
+    expect(result).toHaveLength(1)
+    expect(result[0].item.text).toBe('ħobż')
+  })
+})
+
+// Issue #813: threshold should filter results by score
+describe('Threshold filtering', () => {
+  const list = [
+    { name: 'Simple Storage Service' },
+    { name: 'Elastic File System' }
+  ]
+
+  test('results with score > threshold are excluded (ignoreLocation: true)', () => {
+    const fuse = new Fuse(list, {
+      keys: ['name'],
+      includeScore: true,
+      threshold: 0.3,
+      ignoreLocation: true
+    })
+    const results = fuse.search('Simple Storage Service')
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.3)
+    })
+    expect(results.length).toBe(1)
+    expect(results[0].item.name).toBe('Simple Storage Service')
+  })
+
+  test('results with score > threshold are excluded (distance: 500)', () => {
+    const fuse = new Fuse(list, {
+      keys: ['name'],
+      includeScore: true,
+      threshold: 0.3,
+      distance: 500
+    })
+    const results = fuse.search('Simple Storage Service')
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.3)
+    })
+    expect(results.length).toBe(1)
+    expect(results[0].item.name).toBe('Simple Storage Service')
+  })
+
+  test('number arrays are searchable', () => {
+    const list = [
+      { name: 'item1', years: [2022, 2023] },
+      { name: 'item2', years: [2024] },
+      { name: 'item3', years: [2025, 2026] }
+    ]
+    const fuse = new Fuse(list, { keys: ['years'] })
+    const results = fuse.search('2024')
+    expect(results.length).toBeGreaterThan(0)
+    expect(results[0].item.name).toBe('item2')
+  })
+
+  test('bigint arrays are searchable', () => {
+    const list = [
+      { name: 'item1', ids: [9007199254740993n, 9007199254740994n] },
+      { name: 'item2', ids: [1234567890123456789n] }
+    ]
+    const fuse = new Fuse(list, { keys: ['ids'] })
+    const results = fuse.search('1234567890123456789')
+    expect(results.length).toBeGreaterThan(0)
+    expect(results[0].item.name).toBe('item2')
+  })
+
+  test('threshold=0 only returns exact matches', () => {
+    const fuse = new Fuse(['apple', 'application', 'apply'], {
+      includeScore: true,
+      threshold: 0
+    })
+    const results = fuse.search('apple')
+    expect(results.length).toBe(1)
+    results.forEach((r) => {
+      expect(r.score).toBeLessThanOrEqual(0.001)
+    })
+  })
+})
+
+// Highlight indices used to bleed across the whole scan range because the
+// bitap fuzzy loop wrote matchMask for every pattern-alphabet char it
+// visited. After the #792 fix, indices are restricted to the actual matched
+// window: [bestLocation, bestLocation + patternLen - 1 + bestErrors].
+describe('Match indices restricted to bitap-matched window (#792)', () => {
+  test('#792 repro: strong fuzzy match, no multi-char cross-word bleed', () => {
+    const fuse = new Fuse(['olympic medical office'], { includeMatches: true })
+    const result = fuse.search('olympics')
+    // [0,6] is the real "olympic" match. [8,8] is a 1-char residual from
+    // the bestErrors=1 right-edge extension ('m' in "medical"). Pre-fix
+    // there were also bleed entries at [11,12], [14,14], [16,16], [19,20].
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 6],
+      [8, 8]
+    ])
+  })
+
+  test('#611 repro: partial pattern does not highlight stray pattern-alphabet runs', () => {
+    const fuse = new Fuse(['AA BB AAA BBB'], {
+      includeMatches: true,
+      ignoreLocation: true,
+      ignoreFieldNorm: true,
+      threshold: 0.001
+    })
+    const result = fuse.search('AAA')
+    // Pre-fix: [[0,1],[6,8]]. The [0,1] "AA" partial was bleed.
+    expect(result[0].matches[0].indices).toEqual([[6, 8]])
+  })
+
+  test('findAllMatches:true produces the same indices as default options', () => {
+    // The flag still extends the bitap scan range, but bitap tracks only
+    // one bestLocation, so highlights are determined by bestLocation +
+    // bestErrors regardless of how far the scan went.
+    const fuse = new Fuse(['olympic medical office'], {
+      includeMatches: true,
+      findAllMatches: true
+    })
+    const result = fuse.search('olympics')
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 6],
+      [8, 8]
+    ])
+  })
+
+  test('multiple non-overlapping exact matches are all highlighted', () => {
+    // The top-of-function exact-match loop marks every occurrence's window;
+    // the post-loop fill is additive, not replacing.
+    const fuse = new Fuse(['ab XX ab YY ab'], { includeMatches: true })
+    const result = fuse.search('ab')
+    expect(result[0].matches[0].indices).toEqual([
+      [0, 1],
+      [6, 7],
+      [12, 13]
+    ])
+  })
+
+  test('match window is clamped when the match starts near end of text', () => {
+    const fuse = new Fuse(['xx olymp'], { includeMatches: true })
+    const result = fuse.search('olympics')
+    const idx = result[0].matches[0].indices
+    for (const [, end] of idx) {
+      expect(end).toBeLessThan(8) // textLen
+    }
+  })
+
+  test('insertion case: matched chars past pattern-length window are preserved', () => {
+    // Pattern "abc" matches "abxc" with one insertion (the 'x'). The 'c'
+    // sits at position 3, which is patternLen positions past bestLocation.
+    // The bestErrors extension is what keeps that 'c' inside the highlight
+    // window — without it, the match would silently drop a real char.
+    const result = Fuse.match('abc', 'abxc', { includeMatches: true })
+    expect(result.indices).toEqual([
+      [0, 1],
+      [3, 3]
+    ])
+  })
+})
