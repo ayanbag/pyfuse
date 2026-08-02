@@ -103,11 +103,7 @@ def _js_number_to_string(value: float) -> str:
 # *plus* U+FEFF (ZERO WIDTH NO-BREAK SPACE), which Python does not consider
 # whitespace. A field consisting solely of a BOM is blank to fuse.js but not
 # to `str.strip()`.
-_JS_TRIM_CHARS: Final = (
-    "\t\n\v\f\r\x20\xa0 "
-    "           "
-    "    　﻿"
-)
+_JS_TRIM_CHARS: Final = "\t\n\v\f\r\x20\xa0                　﻿"
 
 
 def js_trim(value: str) -> str:

@@ -141,9 +141,7 @@ class Fuse:
 
         self._invalidate_searcher_cache()
 
-    def remove(
-        self, predicate: Callable[[Any, int], bool] | None = None
-    ) -> list[Any]:
+    def remove(self, predicate: Callable[[Any, int], bool] | None = None) -> list[Any]:
         """Remove every document matching ``predicate``; return those removed."""
         if predicate is None:
             return []
@@ -158,9 +156,7 @@ class Fuse:
 
         if indices_to_remove:
             if self._inverted_index is not None:
-                remove_and_shift_inverted_index(
-                    self._inverted_index, indices_to_remove
-                )
+                remove_and_shift_inverted_index(self._inverted_index, indices_to_remove)
 
             to_remove = set(indices_to_remove)
             self._docs = [d for i, d in enumerate(self._docs) if i not in to_remove]
@@ -202,9 +198,7 @@ class Fuse:
 
     # ── Searching ──────────────────────────────────────────────────
 
-    def search(
-        self, query: str | Expression, limit: int = -1
-    ) -> list[FuseResult]:
+    def search(self, query: str | Expression, limit: int = -1) -> list[FuseResult]:
         """Search the collection.
 
         ``limit`` caps the number of results; ``-1`` (the default) returns
@@ -234,9 +228,7 @@ class Fuse:
         # The heap selects a sorted top-N, so it applies only when sorting is
         # on. With should_sort=False the collection-order-then-slice path must
         # be kept, so search(q, limit) still equals search(q)[:limit].
-        use_heap = (
-            options.should_sort and limit > 0 and isinstance(query, str)
-        )
+        use_heap = options.should_sort and limit > 0 and isinstance(query, str)
 
         results: list[InternalResult]
 
@@ -548,9 +540,7 @@ class Fuse:
         normalises them to sum to 1. Scoring off the raw weights underflows
         for large values and diverges from the keyed logical path.
         """
-        return [
-            self._key_store.get(key.id) or key for key in self._my_index.keys
-        ]
+        return [self._key_store.get(key.id) or key for key in self._my_index.keys]
 
     # ── One-off matching ───────────────────────────────────────────
 

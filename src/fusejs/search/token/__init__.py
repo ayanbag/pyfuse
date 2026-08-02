@@ -127,9 +127,7 @@ class TokenSearch:
             return SearchResult(is_match=False, score=1.0)
 
         normalized = (
-            1 - weighted_score / max_possible_score
-            if max_possible_score > 0
-            else 0.0
+            1 - weighted_score / max_possible_score if max_possible_score > 0 else 0.0
         )
 
         search_result = SearchResult(is_match=True, score=max(0.001, normalized))

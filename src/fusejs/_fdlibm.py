@@ -271,16 +271,16 @@ def pow(x: float, y: float) -> float:
         s_h = _set_low_word(ss, 0)
 
         # t_h = (ax + bp[k]) rounded to 24 bits.
-        t_h = _set_high_word(
-            0.0, ((ix >> 1) | 0x20000000) + 0x00080000 + (k << 18)
-        )
+        t_h = _set_high_word(0.0, ((ix >> 1) | 0x20000000) + 0x00080000 + (k << 18))
         t_l = ax - (t_h - _BP[k])
         s_l = v * ((u - s_h * t_h) - s_h * t_l)
 
         # log(ax)
         s2 = ss * ss
-        r = s2 * s2 * (
-            _L1 + s2 * (_L2 + s2 * (_L3 + s2 * (_L4 + s2 * (_L5 + s2 * _L6))))
+        r = (
+            s2
+            * s2
+            * (_L1 + s2 * (_L2 + s2 * (_L3 + s2 * (_L4 + s2 * (_L5 + s2 * _L6)))))
         )
         r += s_l * (s_h + ss)
         s2 = s_h * s_h

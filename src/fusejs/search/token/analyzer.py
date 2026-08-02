@@ -87,8 +87,7 @@ def _resolve_tokenize(tokenize: re.Pattern[str] | TokenizeFn | None) -> Tokenize
                 isinstance(t, str) for t in result
             ):
                 raise TypeError(
-                    "tokenize must return list[str]; "
-                    f"got {type(result).__name__}"
+                    f"tokenize must return list[str]; got {type(result).__name__}"
                 )
             return result
 

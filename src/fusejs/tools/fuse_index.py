@@ -43,7 +43,8 @@ class FuseIndex:
     ) -> None:
         defaults = FuseOptions()
         self.norm = FieldNorm(
-            defaults.field_norm_weight if field_norm_weight is None
+            defaults.field_norm_weight
+            if field_norm_weight is None
             else field_norm_weight,
             3,
         )
@@ -311,7 +312,10 @@ def parse_index(
     index.set_keys(
         [
             KeyObject(
-                path=k["path"], id=k["id"], weight=k["weight"], src=k["src"],
+                path=k["path"],
+                id=k["id"],
+                weight=k["weight"],
+                src=k["src"],
                 get_fn=None,
             )
             for k in data["keys"]
