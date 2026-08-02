@@ -1,0 +1,109 @@
+# Benchmark methodology
+
+## The headline, stated first
+
+**fuse.js is ~13x faster than this port on search throughput.** That is the
+honest result and it is the expected one. V8 JIT-compiles the Bitap inner
+loop; CPython interprets it, bytecode by bytecode, and the loop is
+bit-manipulation over per-character arrays — close to the worst case for a
+Python interpreter.
+
+The port's value is ecosystem reach and behavioural parity, not speed. If you
+need fuse.js's throughput, run fuse.js.
+
+One result went the other way: **the Python process used ~42% less memory**
+(31.3 MiB peak RSS vs 53.7 MiB). See "Confounders" before reading much into it.
+
+## What is measured
+
+Both engines run the **same corpus and the same queries**, generated once in
+Python from fixed seeds and handed to Node as JSON. No per-engine tuning, no
+different workloads.
+
+| Metric | Definition |
+|---|---|
+| `startup_ms` | Import/require plus index build, cold, in a fresh process |
+| `throughput_per_s` | Searches per second over the measured phase |
+| `latency_ms.p50/p95/p99` | Per-search latency from the full distribution |
+| `peak_rss_bytes` | Peak resident set size of the process |
+
+Latency is recorded per call and reported as percentiles, not as an average —
+an average would hide the tail, and the tail is where an interpreted Bitap
+loop hurts most. `max` is included so the worst single call is visible.
+
+## Workload
+
+- **Corpus**: synthetic documents with a `title`, a nested
+  `author.firstName` / `author.lastName`, and a `tags` array of 0–3 entries.
+  Drawn from a fixed 24-word vocabulary so queries hit a realistic mix of
+  strong and weak matches. Seed `42`.
+- **Queries**: 1–3 words from the same vocabulary. Seed `7`.
+- **Options**: 4 keys (`title`, `author.firstName`, `author.lastName`,
+  `tags`), `includeScore: true`.
+- **Defaults**: 400 documents, 150 queries. Raise with `--docs` / `--queries`.
+
+The vocabulary overlap is deliberate: a corpus of random noise would make
+almost every search miss early and would flatter both engines equally, but
+would not measure the scoring path that dominates real use.
+
+## Procedure
+
+1. Build corpus and queries in Python from the fixed seeds.
+2. Run the Python port in-process; run fuse.js in a fresh `node` subprocess,
+   fed the identical payload on stdin.
+3. **Warm up both engines** with up to 50 searches before timing. Node gets
+   this so V8 has JIT-compiled the hot loop; Python gets the same courtesy so
+   neither is measured on first-call overhead. Measuring a cold V8 would
+   flatter the port dishonestly.
+4. Time each search individually; collect the full distribution.
+5. Report percentiles, throughput, startup, and peak RSS.
+
+Reproduce with:
+
+```bash
+just bench                              # defaults
+python bench/run.py --docs 1000 --queries 500
+```
+
+## Confounders — read these before quoting the numbers
+
+- **Process boundary.** Python is measured in-process; Node is measured in a
+  subprocess. Node's startup figure therefore excludes process spawn and
+  module resolution, which flatters it slightly. Both engines' `startup_ms`
+  covers only import + index build.
+- **RSS is not comparable like-for-like.** The Python figure is peak working
+  set of an interpreter that has also imported the benchmark harness, JSON,
+  and `subprocess`. The Node figure is a V8 process whose heap is
+  garbage-collected on its own schedule and which sizes itself against
+  available RAM. Node's number reflects GC policy as much as data size. The
+  ~42% gap is real but should not be read as "the port's index is smaller".
+- **Single machine, single run.** Numbers come from one Windows machine, not
+  a statistical sample across hardware. Absolute values will move; the ratio
+  is the durable part.
+- **No I/O, no concurrency.** Purely CPU-bound, single-threaded, in-memory.
+  `src/workers/*` is out of scope (DECISIONS.md §17), so no parallel path is
+  measured for either engine.
+- **`strict_js_pow` is off**, as it is by default. Turning it on makes the
+  Python side dramatically slower (~1639x per `pow` call) and is not a
+  production configuration — see DECISIONS.md §1.
+- **Synthetic corpus.** A real corpus with long free-text fields would shift
+  the balance further toward fuse.js, since the Bitap loop cost scales with
+  field length.
+
+## Where the time goes
+
+The Bitap scan is the hot path: a nested loop over pattern length × text
+length doing bitwise arithmetic on Python ints. Each iteration that V8 lowers
+to a handful of machine instructions costs CPython an interpreted dispatch
+plus arbitrary-precision integer objects. The 32-bit masking the port applies
+for JS parity (DECISIONS.md §3) adds an operation per iteration on top.
+
+A C extension would close most of the gap and would also forfeit the
+zero-dependency, pure-Python property that makes the package trivial to
+install anywhere. That trade was not taken.
+
+## Results
+
+Machine-readable output: [`results.json`](./results.json), regenerated by
+`just bench`. It records the workload parameters, the environment, and both
+engines' full metric set.

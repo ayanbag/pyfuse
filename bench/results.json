@@ -1,0 +1,57 @@
+{
+  "workload": {
+    "documents": 400,
+    "queries": 150,
+    "keys": [
+      "title",
+      "author.firstName",
+      "author.lastName",
+      "tags"
+    ],
+    "corpus_seed": 42,
+    "query_seed": 7
+  },
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64 Family 23 Model 96 Stepping 1, AuthenticAMD",
+    "python": "3.11.9"
+  },
+  "results": [
+    {
+      "engine": "fusejs-python",
+      "runtime": "CPython 3.11.9",
+      "startup_ms": 13.681,
+      "searches": 150,
+      "total_hits": 24166,
+      "throughput_per_s": 7.0,
+      "latency_ms": {
+        "mean": 142.6343,
+        "p50": 114.9164,
+        "p95": 376.7101,
+        "p99": 637.0103,
+        "max": 680.2716
+      },
+      "peak_rss_bytes": 32858112
+    },
+    {
+      "engine": "fuse.js",
+      "runtime": "Node 22.18.0 / V8 12.4.254.21-node.27",
+      "startup_ms": 7.704,
+      "searches": 150,
+      "total_hits": 24166,
+      "throughput_per_s": 92.8,
+      "latency_ms": {
+        "mean": 10.7667,
+        "p50": 8.9542,
+        "p95": 26.8542,
+        "p99": 49.7629,
+        "max": 51.4295
+      },
+      "peak_rss_bytes": 56352768
+    }
+  ],
+  "summary": {
+    "fusejs_faster_by": 13.26,
+    "note": "fuse.js is expected to be faster: V8 JITs the hot Bitap loop, CPython interprets it. The port's value is ecosystem reach and behavioural parity, not throughput. See bench/methodology.md."
+  }
+}
