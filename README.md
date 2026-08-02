@@ -73,6 +73,6 @@ just diff
 ## Attribution & license
 
 Ported from **fuse.js** ([krisk/Fuse](https://github.com/krisk/Fuse)),
-© Kirollos Risk, licensed **Apache-2.0**. This port is likewise **Apache-2.0**.
+© Kirollos Risk, licensed **Apache-2.0**. This port is **Apache-2.0**.
 
 Pinned source commit: `45bac9f (HEAD, tag: v7.5.0) chore(release): 7.5.0`
