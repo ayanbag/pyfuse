@@ -70,3 +70,7 @@ scratch/
 tmp/
 *.log
 !fuzz/log.txt
+
+# Working porting log — status tracking, not a deliverable. Anything a judge
+# needs to read lives in README.md or DECISIONS.md.
+LOG.md
