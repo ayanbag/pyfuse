@@ -258,8 +258,10 @@ class TestIndexDifferential:
     CASES = [
         (["title"], None),  # None -> the books fixture
         (["title", "author.firstName"], None),
-        ([{"name": "title", "weight": 2}, {"name": "author.lastName", "weight": 3}],
-         None),
+        (
+            [{"name": "title", "weight": 2}, {"name": "author.lastName", "weight": 3}],
+            None,
+        ),
         ([], ["Old Man's War", "The Lock Artist", "", "   ", "HTML5"]),
         (["tags"], [{"tags": ["a", "bb", "ccc ddd"]}, {"tags": []}, {"tags": ["  "]}]),
         (["a.b.c"], [{"a": {"b": {"c": "deep value here"}}}, {"a": {"b": {}}}, {}]),
@@ -272,8 +274,9 @@ class TestIndexDifferential:
         if isinstance(value, list):
             return [TestIndexDifferential._canonical(v) for v in value]
         if isinstance(value, dict):
-            return {k: TestIndexDifferential._canonical(value[k])
-                    for k in sorted(value)}
+            return {
+                k: TestIndexDifferential._canonical(value[k]) for k in sorted(value)
+            }
         return value
 
     @pytest.mark.parametrize(("keys", "docs"), CASES)

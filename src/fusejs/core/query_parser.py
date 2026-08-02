@@ -8,6 +8,7 @@ so ``{"title": "a", "author": "b"}`` and
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -72,12 +73,32 @@ def _at(value: Any, key: str) -> Any:
     return None
 
 
+def _js_truthy(value: Any) -> bool:
+    """JavaScript truthiness, which differs from Python's on collections.
+
+    ``[]`` and ``{}`` are truthy in JS and falsy in Python. That matters
+    directly here: ``{"$or": []}`` is a valid (empty) operator node to
+    fuse.js, but Python's ``bool([])`` would classify it as a leaf and then
+    reject it for having a non-string pattern.
+    """
+    if value is None or value is False:
+        return False
+    if isinstance(value, str):
+        return value != ""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return value != 0 and not math.isnan(value)
+    # Arrays, objects and everything else are truthy in JS.
+    return True
+
+
 def _is_expression(query: Any) -> bool:
-    return bool(_at(query, LogicalOperator.AND) or _at(query, LogicalOperator.OR))
+    return _js_truthy(_at(query, LogicalOperator.AND)) or _js_truthy(
+        _at(query, LogicalOperator.OR)
+    )
 
 
 def _is_path(query: Any) -> bool:
-    return bool(_at(query, _PATH))
+    return _js_truthy(_at(query, _PATH))
 
 
 def _is_leaf(query: Any) -> bool:
@@ -102,9 +123,7 @@ def _key_label(key: Any) -> str:
     return str(key)
 
 
-def parse(
-    query: Expression, options: Any = None, *, auto: bool = True
-) -> ParsedNode:
+def parse(query: Expression, options: Any = None, *, auto: bool = True) -> ParsedNode:
     """Parse a logical expression into a searchable tree.
 
     With ``auto`` (the default) each leaf is given a ready-to-use searcher;

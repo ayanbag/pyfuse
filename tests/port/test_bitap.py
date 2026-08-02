@@ -63,9 +63,10 @@ class TestComputeScore:
         assert compute_score("abc", errors=0, current_location=0) == 0.0
 
     def test_accuracy_only_when_location_ignored(self):
-        assert compute_score(
-            "abcd", errors=1, current_location=50, ignore_location=True
-        ) == 0.25
+        assert (
+            compute_score("abcd", errors=1, current_location=50, ignore_location=True)
+            == 0.25
+        )
 
     def test_zero_distance_makes_any_drift_total(self):
         assert compute_score("abc", errors=0, current_location=5, distance=0) == 1.0
@@ -73,9 +74,10 @@ class TestComputeScore:
 
     def test_proximity_penalty_is_added_not_folded(self):
         # The arithmetic order is load-bearing; this pins the exact value.
-        assert compute_score(
-            "abcd", errors=1, current_location=10, distance=100
-        ) == 0.25 + 10 / 100
+        assert (
+            compute_score("abcd", errors=1, current_location=10, distance=100)
+            == 0.25 + 10 / 100
+        )
 
 
 class TestSearchErrors:
