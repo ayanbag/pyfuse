@@ -15,12 +15,31 @@ resulting eviction order is harder to prove identical to the original's.
 from __future__ import annotations
 
 from collections.abc import Callable
-from functools import cmp_to_key
+from dataclasses import dataclass
 
 from ..types import InternalResult
 
 #: Orders two results; negative when ``a`` sorts before ``b``.
 Comparator = Callable[[InternalResult, InternalResult], "int | float"]
+
+
+@dataclass(slots=True)
+class _ByComparator:
+    """Sort key adapting a three-way comparator to ``list.sort``.
+
+    :func:`functools.cmp_to_key` would do this, but it is typed as accepting
+    only ``-> int`` comparators, while a user ``sort_fn`` may perfectly well
+    return a float (``a.score - b.score`` being the obvious way to write
+    one). Silencing that with a ``cast`` would spend escape-hatch budget on a
+    stub's narrowness; ten lines of our own key class costs nothing and stays
+    honest about the accepted type.
+    """
+
+    item: InternalResult
+    compare: Comparator
+
+    def __lt__(self, other: _ByComparator) -> bool:
+        return self.compare(self.item, other.item) < 0
 
 
 class MaxHeap:
@@ -54,7 +73,7 @@ class MaxHeap:
 
     def extract_sorted(self) -> list[InternalResult]:
         """Return the retained results in comparator order."""
-        self.heap.sort(key=cmp_to_key(self.comparator))
+        self.heap.sort(key=lambda item: _ByComparator(item, self.comparator))
         return self.heap
 
     def _bubble_up(self, i: int) -> None:

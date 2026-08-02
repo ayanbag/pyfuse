@@ -21,7 +21,7 @@ def _is_word_separator(code: int) -> bool:
     skips rarer separators like the ideographic and en/em spaces on the
     grounds that the heuristic is too coarse to benefit from the distinction.
     """
-    return (9 <= code <= 13) or code == 32 or code == 160
+    return (9 <= code <= 13) or code in (32, 160)
 
 
 class FieldNorm:
