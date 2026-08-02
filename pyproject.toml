@@ -1,0 +1,97 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fusejs-python"
+version = "7.5.0"
+description = "A byte-equivalent Python port of fuse.js — lightweight fuzzy-search engine."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+authors = [{ name = "Ayan Bag" }]
+keywords = ["fuzzy", "search", "bitap", "fuse", "fuzzy-search"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing :: Indexing",
+  "Typing :: Typed",
+]
+# Zero runtime dependencies, mirroring fuse.js's zero-dep design.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "hypothesis>=6.100",
+  "ruff>=0.6",
+  "mypy>=1.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/ayanbag/fusejs-python"
+"Upstream (fuse.js)" = "https://github.com/krisk/Fuse"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fusejs"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/port"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+src = ["src", "tests/port", "fuzz", "bench"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "ANN", "PL"]
+ignore = [
+  # The port mirrors fuse.js's control flow deliberately; several hot loops
+  # keep the original's shape rather than a more "Pythonic" rewrite so the
+  # arithmetic order — and therefore the float results — stay identical.
+  "PLR0912", # too many branches
+  "PLR0913", # too many arguments
+  "PLR0915", # too many statements
+  "PLR0911", # too many returns — type-dispatch chains ported from JS
+  "PLR2004", # magic value comparison
+  "C901",    # complexity
+  # A search engine indexes documents whose shape it cannot know. `Any` at
+  # that boundary is the honest type; banning it would only push the
+  # imprecision into `cast()` calls, which are genuinely unsafe. The
+  # Zero-Unsafe budget is measured on `cast`, `type: ignore`, `eval`/`exec`
+  # and bare `except` instead — see DECISIONS.md.
+  "ANN401",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# These files contain exotic whitespace and lookalike letters *on purpose*:
+# they transcribe the ECMAScript whitespace set and fuse.js's
+# non-decomposable character map. RUF001 would have us "fix" the data.
+"src/fusejs/_js.py" = ["RUF001"]
+"src/fusejs/helpers/diacritics.py" = ["RUF001", "E501"]
+"tests/port/*" = ["ANN", "PLR2004", "RUF012", "N802", "N803", "N806", "RUF001"]
+"fuzz/*" = ["ANN", "PLR2004", "RUF012"]
+"bench/*" = ["ANN", "PLR2004", "RUF012"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+# `packages` rather than `files`: `src/fusejs/types.py` would otherwise be
+# resolved as the stdlib top-level `types` module.
+mypy_path = "src"
+packages = ["fusejs"]
+warn_unreachable = true
+disallow_any_explicit = false
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
