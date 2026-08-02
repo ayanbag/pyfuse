@@ -1,0 +1,17 @@
+track           = "H"                                # Open Pair
+pair            = "TypeScript -> Python"
+source_repo     = "https://github.com/krisk/Fuse"
+source_commit   = "45bac9fe2e71fe8c680c861a35a8b226c4ae6d5a"     # the commit organizers pin
+kickoff_hash    = "1b0f5eb78e8f3326e2f9c64f098f4919af90c530d455d808f5aeb8c8e44c5d22"
+
+source_language = "TypeScript"
+target_language = "Python"
+
+[project]
+name    = "fusejs-python"                             # rename if you chose another
+license = "Apache-2.0"
+
+[team]
+name    = "ayanbag"
+members = ["ayanbag"]
+contact = "ayanbag9474@gmail.com"
