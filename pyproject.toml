@@ -45,6 +45,9 @@ packages = ["src/fusejs"]
 testpaths = ["tests/port"]
 pythonpath = ["src"]
 addopts = "-q"
+markers = [
+  "differential: compares against the live fuse.js oracle via Node",
+]
 
 [tool.ruff]
 line-length = 88
@@ -79,7 +82,10 @@ ignore = [
 "src/fusejs/helpers/diacritics.py" = ["RUF001", "E501"]
 "tests/port/*" = ["ANN", "PLR2004", "RUF012", "N802", "N803", "N806", "RUF001"]
 "fuzz/*" = ["ANN", "PLR2004", "RUF012"]
-"bench/*" = ["ANN", "PLR2004", "RUF012"]
+# The benchmark imports platform-specific modules (`ctypes`, `resource`) inside
+# the function that needs them, on purpose: importing either unconditionally at
+# module scope would fail on the other platform.
+"bench/*" = ["ANN", "PLR2004", "RUF012", "PLC0415"]
 
 [tool.mypy]
 python_version = "3.10"
