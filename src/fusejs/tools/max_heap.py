@@ -24,7 +24,7 @@ Comparator = Callable[[InternalResult, InternalResult], "int | float"]
 
 
 @dataclass(slots=True)
-class _ByComparator:
+class ComparatorKey:
     """Sort key adapting a three-way comparator to ``list.sort``.
 
     :func:`functools.cmp_to_key` would do this, but it is typed as accepting
@@ -38,7 +38,7 @@ class _ByComparator:
     item: InternalResult
     compare: Comparator
 
-    def __lt__(self, other: _ByComparator) -> bool:
+    def __lt__(self, other: ComparatorKey) -> bool:
         return self.compare(self.item, other.item) < 0
 
 
@@ -73,7 +73,7 @@ class MaxHeap:
 
     def extract_sorted(self) -> list[InternalResult]:
         """Return the retained results in comparator order."""
-        self.heap.sort(key=lambda item: _ByComparator(item, self.comparator))
+        self.heap.sort(key=lambda item: ComparatorKey(item, self.comparator))
         return self.heap
 
     def _bubble_up(self, i: int) -> None:
