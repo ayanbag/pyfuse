@@ -257,7 +257,11 @@ class Fuse:
             else:
                 results = self._search_logical(query)
 
-            compute_score(results, ignore_field_norm=options.ignore_field_norm)
+            compute_score(
+                results,
+                ignore_field_norm=options.ignore_field_norm,
+                strict_js_pow=options.strict_js_pow,
+            )
 
             if options.should_sort:
                 key = stable if isinstance(query, str) else comparator
@@ -338,6 +342,7 @@ class Fuse:
                 result.score = compute_score_single(
                     result.matches,
                     ignore_field_norm=self.options.ignore_field_norm,
+                    strict_js_pow=self.options.strict_js_pow,
                 )
                 heap.insert(result)
             else:

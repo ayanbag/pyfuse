@@ -104,6 +104,17 @@ class FuseOptions:
     #: How strongly the field-length norm affects scoring.
     field_norm_weight: float = 1.0
 
+    #: Score using a transcription of V8's ``Math.pow`` instead of CPython's.
+    #:
+    #: The two are different functions: CPython's ``**`` is correctly rounded,
+    #: V8's is not, and they disagree by 1 ULP on ~10% of calls. Enabling this
+    #: trades accuracy and speed (~1600x slower per call) for closer agreement
+    #: with fuse.js — useful for differential testing, not for production
+    #: search. Off by default: the native result is both faster and strictly
+    #: more accurate, and the difference never changed a result's rank in any
+    #: measured case. See DECISIONS.md.
+    strict_js_pow: bool = False
+
     #: Internal. Corpus statistics handed to ``TokenSearch``, populated by
     #: :class:`~fusejs.Fuse` when it builds the index — never by user
     #: configuration. fuse.js smuggles the same value through the options

@@ -12,12 +12,16 @@ load-bearing one — see :func:`compute_score_single`.
 
 from __future__ import annotations
 
+from .._fdlibm import pow as js_pow
 from .._js import EPSILON
 from ..types import InternalResult, MatchScore
 
 
 def compute_score_single(
-    matches: list[MatchScore], *, ignore_field_norm: bool = False
+    matches: list[MatchScore],
+    *,
+    ignore_field_norm: bool = False,
+    strict_js_pow: bool = False,
 ) -> float:
     """The combined relevance score for one document's matches.
 
@@ -39,16 +43,21 @@ def compute_score_single(
         base = EPSILON if (match.score == 0 and weight) else match.score
         exponent = (weight or 1) * (1 if ignore_field_norm else match.norm)
 
-        total_score *= base**exponent
+        total_score *= js_pow(base, exponent) if strict_js_pow else base**exponent
 
     return total_score
 
 
 def compute_score(
-    results: list[InternalResult], *, ignore_field_norm: bool = False
+    results: list[InternalResult],
+    *,
+    ignore_field_norm: bool = False,
+    strict_js_pow: bool = False,
 ) -> None:
     """Populate ``score`` on every result, in place."""
     for result in results:
         result.score = compute_score_single(
-            result.matches, ignore_field_norm=ignore_field_norm
+            result.matches,
+            ignore_field_norm=ignore_field_norm,
+            strict_js_pow=strict_js_pow,
         )
