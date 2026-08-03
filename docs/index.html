@@ -452,7 +452,7 @@ function run() {
 async function boot() {
   const pyodide = await loadPyodide();
   await pyodide.loadPackage("micropip");
-  await pyodide.pyimport("micropip").install("./pyfuse-7.5.0-py3-none-any.whl");
+  await pyodide.pyimport("micropip").install("./pyfusejs-7.5.0-py3-none-any.whl");
 
   pyodide.runPython(`
 import json

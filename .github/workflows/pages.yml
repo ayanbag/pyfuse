@@ -51,7 +51,7 @@ jobs:
 
           # The page pins a wheel filename, which carries the version. Rewrite
           # it so a version bump can never leave the demo fetching a 404.
-          sed -i "s|\./pyfuse-[^\"]*\.whl|./$wheel|" docs/index.html
+          sed -i "s|\./pyfusejs-[^\"]*\.whl|./$wheel|" docs/index.html
 
           # Assert the rewrite landed, rather than trusting sed's exit code —
           # sed reports success when it matches nothing.
