@@ -115,6 +115,60 @@
     color: #c0392b; font: 12.5px ui-monospace, Consolas, monospace;
     white-space: pre-wrap; margin-top: 10px;
   }
+
+  /* ── live differential check against fuse.js ───────────────── */
+  #verdict {
+    display: none; align-items: center; gap: 10px; margin: 0 0 20px;
+    padding: 11px 14px; border-radius: 8px; font-size: 13.5px;
+    border: 1px solid var(--line); background: var(--panel);
+  }
+  #verdict.show { display: flex; }
+  #verdict .mark { font-size: 15px; font-weight: 700; }
+  #verdict.ok { border-color: #2d8a4e55; }
+  #verdict.ok .mark { color: #2d8a4e; }
+  #verdict.bad { border-color: #c0392b66; background: #c0392b11; }
+  #verdict.bad .mark { color: #c0392b; }
+  #verdict .detail {
+    margin-left: auto; color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px;
+  }
+  .delta {
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11px; color: var(--muted); margin-left: 8px;
+  }
+  .delta.zero { color: #2d8a4e; }
+
+  /* ── python scratchpad ─────────────────────────────────────── */
+  details.runner { margin-top: 26px; }
+  details.runner > summary {
+    cursor: pointer; font-size: 11.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    margin-bottom: 9px;
+  }
+  #editor {
+    width: 100%; min-height: 168px; resize: vertical; color: var(--fg);
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 13px 15px;
+    font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  #editor:focus { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .runbar { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .runbar button {
+    background: var(--accent); color: #fff; border: 0; border-radius: 7px;
+    padding: 8px 18px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+    font-family: inherit;
+  }
+  .runbar button:hover { filter: brightness(1.08); }
+  .runbar button:disabled { opacity: .5; cursor: default; }
+  .runbar .hint { color: var(--muted); font-size: 12.5px; }
+  #output {
+    margin-top: 10px; padding: 13px 15px; border-radius: 8px;
+    background: var(--panel); border: 1px solid var(--line);
+    font: 12.5px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+    white-space: pre-wrap; min-height: 3em; color: var(--fg);
+  }
+  #output:empty::before { content: "Run the code to see output here."; color: var(--muted); }
+  #output .fail { color: #c0392b; }
   footer {
     margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--line);
     color: var(--muted); font-size: 13px;
@@ -171,7 +225,12 @@
     <label><input type="checkbox" id="ignore_location"> ignore_location</label>
     <label><input type="checkbox" id="use_extended_search"> use_extended_search</label>
     <label><input type="checkbox" id="use_token_search"> use_token_search</label>
+    <label title="Run the same query through the original fuse.js and diff the results">
+      <input type="checkbox" id="compare" checked> <b>compare with fuse.js</b>
+    </label>
   </div>
+
+  <div id="verdict"><span class="mark"></span><span class="text"></span><span class="detail"></span></div>
 
   <div class="panels">
     <section>
@@ -191,9 +250,28 @@
     <pre id="code"></pre>
   </div>
 
+  <details class="runner">
+    <summary>Write your own Python ▾</summary>
+    <textarea id="editor" spellcheck="false"></textarea>
+    <div class="runbar">
+      <button id="runbtn" type="button">Run</button>
+      <span class="hint"><code>books</code> is the Data panel above ·
+        <code>Fuse</code> is already imported · Ctrl+Enter runs</span>
+    </div>
+    <div id="output"></div>
+  </details>
+
   <footer>
+    <b>How this page works.</b> pyfuse runs as real CPython compiled to
+    WebAssembly (Pyodide) — the results above are computed by the same wheel
+    you would <code>pip install</code>. When <i>compare with fuse.js</i> is on,
+    the original library is loaded separately and given identical input, purely
+    as an oracle to diff against. The published Python package contains no
+    JavaScript and never calls one; this pairing exists only here and in the
+    project's test harness.<br><br>
     <a href="https://github.com/ayanbag/pyfuse">source</a> ·
-    <a href="https://github.com/krisk/Fuse">original fuse.js</a><br>
+    <a href="https://github.com/krisk/Fuse">original fuse.js</a> ·
+    <a href="https://pypi.org/project/pyfusejs/">pypi</a><br>
   </footer>
 </div>
 
@@ -439,12 +517,149 @@ function render(payload) {
   }).join("");
 }
 
+// ── live differential check against the original fuse.js ──────────
+//
+// fuse.js is loaded here ONLY as an oracle: identical input goes to both
+// engines and the outputs are diffed in front of you. The published Python
+// package has no JavaScript in it and never calls one.
+
+let FuseJS = null;          // the original library, lazily imported
+const CAMEL = {             // our snake_case options -> fuse.js spelling
+  include_score: "includeScore",
+  include_matches: "includeMatches",
+  ignore_location: "ignoreLocation",
+  use_extended_search: "useExtendedSearch",
+  use_token_search: "useTokenSearch",
+};
+
+async function oracle() {
+  if (FuseJS) return FuseJS;
+  const mod = await import("https://cdn.jsdelivr.net/npm/fuse.js@7.5.0/dist/fuse.mjs");
+  FuseJS = mod.default;
+  return FuseJS;
+}
+
+/** Relative difference, so the comparison is scale-free like the fuzz harness. */
+function relDiff(a, b) {
+  if (a === b) return 0;
+  const scale = Math.max(Math.abs(a), Math.abs(b));
+  return scale === 0 ? 0 : Math.abs(a - b) / scale;
+}
+
+function setVerdict(state, text, detail) {
+  const v = $("verdict");
+  v.className = "show " + state;
+  v.querySelector(".mark").textContent = state === "ok" ? "✓" : state === "bad" ? "✗" : "…";
+  v.querySelector(".text").textContent = text;
+  v.querySelector(".detail").textContent = detail || "";
+}
+
+/**
+ * Run the same query through fuse.js and compare.
+ *
+ * Structure — which documents, in which order — must match exactly. Scores are
+ * compared with a tolerance, because CPython's `pow` is correctly rounded and
+ * V8's is not; they disagree by 1 ULP on ~10% of calls. Same standard the
+ * project's fuzz harness uses.
+ */
+async function compareWithOracle(mine, keys) {
+  const Fuse = await oracle();
+  const opts = options();
+  const jsOpts = { keys, threshold: opts.threshold };
+  for (const [snake, camel] of Object.entries(CAMEL)) jsOpts[camel] = opts[snake];
+
+  const theirs = new Fuse(JSON.parse($("data").value), jsOpts)
+    .search($("q").value).slice(0, 50);
+
+  const a = mine.map(r => r.title);
+  const b = theirs.map(r => String(r.item.title ?? r.item));
+
+  if (a.length !== b.length) {
+    return setVerdict("bad", "different number of results",
+      `pyfuse ${a.length} · fuse.js ${b.length}`);
+  }
+  const orderMismatch = a.findIndex((t, i) => t !== b[i]);
+  if (orderMismatch !== -1) {
+    return setVerdict("bad", "results differ in order or content",
+      `first at #${orderMismatch + 1}`);
+  }
+
+  let worst = 0;
+  mine.forEach((r, i) => {
+    if (r.score == null || theirs[i].score == null) return;
+    const d = relDiff(r.score, theirs[i].score);
+    worst = Math.max(worst, d);
+    const el = document.querySelectorAll(".hitcard .s")[i];
+    if (el) {
+      el.insertAdjacentHTML("afterend",
+        `<span class="delta${d === 0 ? " zero" : ""}">Δ ${d === 0 ? "0" : d.toExponential(1)}</span>`);
+    }
+  });
+
+  const exact = worst === 0;
+  setVerdict("ok",
+    exact ? "identical to fuse.js — same items, same order, same scores"
+          : "identical to fuse.js — same items, same order; scores within tolerance",
+    `${a.length} result${a.length === 1 ? "" : "s"} · max Δ ${exact ? "0" : worst.toExponential(1)}`);
+}
+
 function run() {
   if (!search) return;
   try {
     $("count").textContent = JSON.parse($("data").value).length + " items";
   } catch { $("count").textContent = "invalid JSON"; }
-  render(JSON.parse(search($("data").value, $("q").value, JSON.stringify(options()))));
+
+  const payload = JSON.parse(search($("data").value, $("q").value, JSON.stringify(options())));
+  render(payload);
+
+  const wanted = $("compare").checked && !payload.error && $("q").value.trim();
+  if (!wanted) { $("verdict").className = ""; return; }
+
+  setVerdict("", "checking against fuse.js…", "");
+  compareWithOracle(payload.results, payload.keys)
+    .catch(e => setVerdict("bad", "could not reach the fuse.js oracle", e.message));
+}
+
+// ── python scratchpad ─────────────────────────────────────────────
+
+const STARTER = `# 'books' is the Data panel above; 'Fuse' is already imported.
+fuse = Fuse(books, {
+    "keys": ["title", "author.firstName", "author.lastName"],
+    "include_score": True,
+    "include_matches": True,
+})
+
+for hit in fuse.search("ste ham")[:3]:
+    print(round(hit.score, 4), hit.item["title"])
+    for m in hit.matches:
+        print("   ", m.key, "->", m.value, m.indices)
+`;
+
+async function runUserCode(pyodide) {
+  const out = [];
+  $("runbtn").disabled = true;
+  // Pyodide's own stdout hook — no exec() anywhere in the page.
+  pyodide.setStdout({ batched: s => out.push(s) });
+  pyodide.setStderr({ batched: s => out.push(s) });
+  try {
+    pyodide.globals.set("books", pyodide.toPy(JSON.parse($("data").value)));
+    await pyodide.runPythonAsync($("editor").value);
+    $("output").textContent = out.join("\n") || "(no output — did you print anything?)";
+  } catch (e) {
+    // Drop Pyodide's own frames — the user wrote none of that, and burying
+    // the real error under six lines of plumbing helps nobody.
+    const trace = String(e.message || e)
+      .split("\n")
+      .filter(l => !/_pyodide|pyodide\.asm|CodeRunner|eval_code|run_async|coroutine =|\^{4,}|self\.ast|mod = compile|codeop|python3\d*\.zip/.test(l))
+      .join("\n")
+      .replace(/File "<exec>", /g, "");
+    $("output").innerHTML =
+      esc(out.join("\n")) + `<span class="fail">${esc(trace.trim())}</span>`;
+  } finally {
+    pyodide.setStdout({});
+    pyodide.setStderr({});
+    $("runbtn").disabled = false;
+  }
 }
 
 async function boot() {
@@ -512,6 +727,13 @@ def search(data_json, query, options_json):
     run();
   });
   for (const name of CHECKS) $(name).addEventListener("change", run);
+  $("compare").addEventListener("change", run);
+
+  $("editor").value = STARTER;
+  $("runbtn").addEventListener("click", () => runUserCode(pyodide));
+  $("editor").addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { runUserCode(pyodide); e.preventDefault(); }
+  });
 
   $("boot").style.display = "none";
   $("app").style.display = "block";
