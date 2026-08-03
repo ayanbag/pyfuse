@@ -23,6 +23,19 @@ build:
 docker:
     docker build -t fusejs-python .
 
+# ── Demo ───────────────────────────────────────────────────────────
+
+# Guided tour in the terminal. Add --interactive for a live search prompt.
+demo *ARGS:
+    {{python}} examples/demo.py {{ARGS}}
+
+# Build the wheel and serve the in-browser playground on localhost:8000.
+playground:
+    {{python}} -m pip install --quiet --upgrade build
+    {{python}} -m build --wheel --outdir docs
+    @echo "  http://localhost:8000  (ctrl-c to stop)"
+    {{python}} -m http.server 8000 --directory docs
+
 # ── Verification ───────────────────────────────────────────────────
 
 # Run the ported pytest suite.
@@ -33,8 +46,7 @@ test:
 diff:
     {{python}} -m pytest tests/port -m differential -v
 
-# Run the ORIGINAL, unmodified fuse.js vitest suite against the Python port.
-# Needs `npm install vitest` once. See compat/README.md.
+# Run the ORIGINAL, unmodified fuse.js vitest suite against the port.
 compat:
     npx vitest run --config compat/vitest.config.mjs
 
@@ -44,9 +56,10 @@ fuzz seconds="60":
 
 # Lint and type-check.
 check:
-    {{python}} -m ruff check src tests/port fuzz bench
-    {{python}} -m ruff format --check src tests/port fuzz bench
+    {{python}} -m ruff check src tests/port fuzz bench examples
+    {{python}} -m ruff format --check src tests/port fuzz bench examples
     {{python}} -m mypy
+    {{python}} -m mypy --strict examples/demo.py
 
 # Count the escape hatches the Zero-Unsafe bonus is scored on.
 unsafe:

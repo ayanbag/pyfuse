@@ -53,6 +53,24 @@ for result in fuse.search("old man"):
 Options are snake_case the way Python expects. The camelCase spellings are
 accepted too, so a config file shared with a JS codebase works as-is.
 
+## Try it without installing anything
+
+**[→ Open the live playground](https://ayanbag.github.io/fusejs-python-port/)**
+
+The port is pure Python with zero dependencies, which means it runs unmodified
+in the browser under Pyodide. That page installs the actual wheel — the same
+one you'd `pip install` — and searches with it. Type a query, misspell it on
+purpose, drag the threshold, edit the corpus. Nothing is sent anywhere; it all
+runs in your tab.
+
+There's also a guided tour in the terminal:
+
+```bash
+just demo                  # eight scenes, each printing the code it runs
+just demo --interactive    # ...then a live search prompt
+just playground            # serve the browser playground locally
+```
+
 ## Build and run
 
 One command:

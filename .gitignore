@@ -66,6 +66,11 @@ pnpm-debug.log*
 Thumbs.db
 desktop.ini
 
+# The playground wheel is a build artifact: `just playground` builds it for
+# local preview and the Pages workflow builds it for deployment, so what the
+# site serves is always the source at that commit. Never commit the binary.
+docs/*.whl
+
 # ── Scratch ────────────────────────────────────────────────────────
 scratch/
 tmp/
