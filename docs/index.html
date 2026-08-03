@@ -73,7 +73,21 @@
   .slide .val { color: var(--muted); min-width: 26px; }
 
   .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 760px) { .panels { grid-template-columns: 1fr; } }
+  .panels.cmp { grid-template-columns: 0.9fr 1fr 1fr; }
+  @media (max-width: 980px) { .panels.cmp { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 760px) { .panels, .panels.cmp { grid-template-columns: 1fr; } }
+  #jspanel { display: none; }
+  .panels.cmp #jspanel { display: block; }
+  .engine {
+    font-size: 9.5px; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px;
+    background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+    margin-left: 7px; text-transform: none; letter-spacing: 0;
+  }
+  .engine.py { background: #3775a922; border-color: #3775a955; color: #2c6390; }
+  .engine.js { background: #f0db4f22; border-color: #c9b83a66; color: #8a7a10; }
+  @media (prefers-color-scheme: dark) {
+    .engine.py { color: #8fbde8; } .engine.js { color: #e0d071; }
+  }
   .head {
     display: flex; justify-content: space-between; align-items: baseline;
     font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase;
@@ -232,14 +246,24 @@
 
   <div id="verdict"><span class="mark"></span><span class="text"></span><span class="detail"></span></div>
 
-  <div class="panels">
+  <div class="panels" id="panels">
     <section>
       <div class="head"><span>Data</span><span class="count" id="count"></span></div>
       <div class="panel"><textarea id="data" spellcheck="false"></textarea></div>
     </section>
     <section>
-      <div class="head"><span>Results</span><span class="count" id="rcount"></span></div>
+      <div class="head">
+        <span>pyfuse <span class="engine py">Python · WASM</span></span>
+        <span class="count" id="rcount"></span>
+      </div>
       <div class="panel" id="results"></div>
+    </section>
+    <section id="jspanel">
+      <div class="head">
+        <span>fuse.js <span class="engine js">JavaScript</span></span>
+        <span class="count" id="jscount"></span>
+      </div>
+      <div class="panel" id="jsresults"></div>
     </section>
   </div>
 
@@ -509,12 +533,30 @@ function render(payload) {
       '<div class="placeholder">No matches — raise <b>threshold</b> or shorten the query</div>';
     return;
   }
-  $("results").innerHTML = hits.map(h => {
-    const fields = (h.matches || []).map(m =>
-      `<div class="f"><b>${esc(m.key)}</b> &nbsp;${highlight(m.value, m.indices)}</div>`).join("");
-    const score = h.score === null ? "" : `<span class="s">${h.score.toFixed(4)}</span>`;
-    return `<div class="hitcard"><div class="row"><span class="t">${esc(h.title)}</span>${score}</div>${fields}</div>`;
-  }).join("");
+  $("results").innerHTML = hits.map(h => card(h)).join("");
+}
+
+/**
+ * One result card. Both engines render through this, so anything you see
+ * differing between the two panels is a real difference in their output,
+ * not a difference in how this page draws them.
+ */
+function card(h) {
+  const fields = (h.matches || []).map(m =>
+    `<div class="f"><b>${esc(m.key)}</b> &nbsp;${highlight(m.value, m.indices)}</div>`).join("");
+  const score = h.score == null ? "" : `<span class="s">${h.score.toFixed(4)}</span>`;
+  return `<div class="hitcard"><div class="row"><span class="t">${esc(h.title)}</span>${score}</div>${fields}</div>`;
+}
+
+/** Normalise a fuse.js result into the same shape our Python side returns. */
+function fromFuseJS(r) {
+  return {
+    title: String(r.item?.title ?? r.item),
+    score: r.score ?? null,
+    matches: (r.matches || [])
+      .filter(m => m.value != null)
+      .map(m => ({ key: m.key, value: m.value, indices: m.indices.map(p => [p[0], p[1]]) })),
+  };
 }
 
 // ── live differential check against the original fuse.js ──────────
@@ -569,10 +611,17 @@ async function compareWithOracle(mine, keys) {
   for (const [snake, camel] of Object.entries(CAMEL)) jsOpts[camel] = opts[snake];
 
   const theirs = new Fuse(JSON.parse($("data").value), jsOpts)
-    .search($("q").value).slice(0, 50);
+    .search($("q").value).slice(0, 50).map(fromFuseJS);
+
+  // Draw fuse.js's own results next to ours — same renderer, so a visible
+  // difference is a real one.
+  $("jsresults").innerHTML = theirs.length
+    ? theirs.map(card).join("")
+    : '<div class="placeholder">No matches</div>';
+  $("jscount").textContent = theirs.length + (theirs.length === 1 ? " hit" : " hits");
 
   const a = mine.map(r => r.title);
-  const b = theirs.map(r => String(r.item.title ?? r.item));
+  const b = theirs.map(r => r.title);
 
   if (a.length !== b.length) {
     return setVerdict("bad", "different number of results",
@@ -613,7 +662,13 @@ function run() {
   render(payload);
 
   const wanted = $("compare").checked && !payload.error && $("q").value.trim();
-  if (!wanted) { $("verdict").className = ""; return; }
+  $("panels").classList.toggle("cmp", !!$("compare").checked);
+  if (!wanted) {
+    $("verdict").className = "";
+    $("jsresults").innerHTML = '<div class="placeholder">Type to search</div>';
+    $("jscount").textContent = "";
+    return;
+  }
 
   setVerdict("", "checking against fuse.js…", "");
   compareWithOracle(payload.results, payload.keys)
