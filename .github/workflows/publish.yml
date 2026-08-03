@@ -1,0 +1,100 @@
+# Publish to PyPI on a version tag.
+#
+# Uses PyPI Trusted Publishing (OIDC) — there is no API token in this repo and
+# none in the Actions secrets. PyPI verifies the workflow identity directly.
+# One-time setup is documented in RELEASING.md.
+name: publish
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Never publish something that has not been verified. This is the same gate
+  # as `just check` plus `just test`, run on a clean machine.
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m ruff check src tests/port fuzz bench examples
+      - run: python -m ruff format --check src tests/port fuzz bench examples
+      - run: python -m mypy
+      - run: python -m pytest tests/port
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refuse to publish a tag that disagrees with the version
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          pkg=$(python -c "import re,pathlib; \
+            print(re.search(r'^version = \"([^\"]+)\"', \
+            pathlib.Path('pyproject.toml').read_text(), re.M).group(1))")
+          echo "tag=$tag  pyproject=$pkg"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag v$tag does not match pyproject version $pkg"
+            exit 1
+          fi
+
+      - name: Build sdist and wheel
+        run: |
+          python -m pip install --upgrade build twine
+          python -m build
+          python -m twine check dist/*
+
+      - name: Install the built wheel in a clean environment and use it
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/probe
+          /tmp/probe/bin/python -m pip install --quiet dist/*.whl
+          cd /tmp   # never import from the source tree
+          /tmp/probe/bin/python - <<'PY'
+          import pyfuse
+          from pyfuse import Fuse
+          books = [{"title": "Old Man's War"}, {"title": "The Lock Artist"}]
+          hits = Fuse(books, {"keys": ["title"], "include_score": True}).search("old man")
+          assert hits[0].item["title"] == "Old Man's War", hits
+          assert (__import__("pathlib").Path(pyfuse.__file__).parent / "py.typed").exists(), \
+              "py.typed missing — downstream type checkers would ignore our hints"
+          print("ok:", pyfuse.__version__, hits[0].score)
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pyfuse
+    permissions:
+      id-token: write # required for Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
