@@ -71,6 +71,9 @@ desktop.ini
 # site serves is always the source at that commit. Never commit the binary.
 docs/*.whl
 
+# Submission deck — uploaded to Google Slides, not part of the artifact.
+*.pptx
+
 # ── Scratch ────────────────────────────────────────────────────────
 scratch/
 tmp/

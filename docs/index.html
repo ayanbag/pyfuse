@@ -131,12 +131,20 @@
   and see results update in real time.
 </p>
 <p class="lede" style="font-size:14.5px">
-  This is not a JavaScript reimplementation. The page installs the real
-  <code>fusejs</code> wheel into CPython compiled to WebAssembly, and every
-  result below is computed by the same Python code you would
-  <code>pip install</code>. The dataset is the fuse.js test suite's own
-  <code>books.json</code>, so you can compare against the
-  <a href="https://www.fusejs.io/demo.html">original demo</a> line by line.
+  <b>fusejs-python</b> is a fuzzy-search <i>engine</i>, not a string-similarity
+  function. Give it a collection of records and it returns them ranked by
+  relevance, tolerating the typos, transpositions and half-remembered spellings
+  people actually type. It searches weighted keys and nested paths
+  (<code>author.lastName</code>), understands extended query operators
+  (<code>=exact</code>, <code>^prefix</code>, <code>!inverse</code>,
+  <code>suffix$</code>), composes them with <code>$and</code> / <code>$or</code>,
+  and can rank by IDF-weighted token search instead of character matching. It
+  has zero runtime dependencies and needs no search server.
+</p>
+<p class="lede" style="font-size:14.5px">
+  Everything below is computed by the real package — the same wheel you would
+  <code>pip install</code>, running here in your browser. Nothing is
+  reimplemented in JavaScript.
 </p>
 
 <div class="badges">
