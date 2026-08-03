@@ -1,5 +1,15 @@
 # pyfuse
 
+[![PyPI](https://img.shields.io/pypi/v/pyfusejs?color=3775a9&logo=pypi&logoColor=white)](https://pypi.org/project/pyfusejs/)
+[![Python](https://img.shields.io/pypi/pyversions/pyfusejs?logo=python&logoColor=white)](https://pypi.org/project/pyfusejs/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/ayanbag/pyfuse/blob/main/LICENSE)
+[![Playground](https://img.shields.io/badge/demo-live%20in%20browser-brightgreen)](https://ayanbag.github.io/pyfuse/)
+
+[![Dependencies](https://img.shields.io/badge/runtime%20dependencies-0-success)](https://github.com/ayanbag/pyfuse/blob/main/pyproject.toml)
+[![Typed](https://img.shields.io/badge/mypy-strict-blue)](https://github.com/ayanbag/pyfuse/blob/main/pyproject.toml)
+[![Tests](https://img.shields.io/badge/tests-417%20passing-success)](https://github.com/ayanbag/pyfuse/tree/main/tests/port)
+[![Fuzz](https://img.shields.io/badge/differential%20fuzz-0%20divergences%20%2F%2051%2C569-success)](https://github.com/ayanbag/pyfuse/blob/main/fuzz/log.txt)
+
 A Python port of **[fuse.js](https://github.com/krisk/Fuse)**, the fuzzy-search
 library, originally built for **Port Mortem 2026** (Track H, Open Pair: TypeScript →
 Python). The main goal was behavioural equivalence with the original, not a
