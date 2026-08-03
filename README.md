@@ -70,12 +70,34 @@ Everything else:
 
 ```bash
 just test       # the ported pytest suite (417 tests)
+just compat     # the ORIGINAL fuse.js vitest suite, run against this port
 just diff       # differential checks against the fuse.js oracle
 just fuzz       # 60s differential fuzz -> fuzz/log.txt
 just bench      # benchmark vs fuse.js -> bench/results.json
 just check      # ruff + mypy --strict
 just unsafe     # escape-hatch census
 ```
+
+## The original fuse.js test suite runs against this port
+
+**285 of 297 original tests pass (95.96%) — every test file byte-for-byte
+unmodified.**
+
+The suite is JavaScript, run by vitest. Rather than translate it, a vitest
+alias redirects the one import every spec shares — `'../dist/fuse.mjs'` — to a
+shim that delegates each call to the Python port. Nothing in `tests/original/`
+is touched.
+
+```bash
+just compat     # see compat/README.md
+```
+
+None of the 12 failures is a port bug: ten are JavaScript callables
+(`sortFn`, `getFn`, function `tokenize`, `Fuse.use`) that cannot cross a
+language boundary, and two are divergences this port chose deliberately and
+documented ([DECISIONS.md](./DECISIONS.md) §13 and §19). Every one is
+classified in [`compat/README.md`](./compat/README.md); the run output is
+committed as [`compat/results.txt`](./compat/results.txt).
 
 ## Equivalence: what is claimed, precisely
 
@@ -128,8 +150,8 @@ confounders, and why the RSS figure should not be over-read:
 - **Zero runtime dependencies**, mirroring fuse.js's own zero-dep design.
 - **`mypy --strict` clean**, with **zero** `cast`, `type: ignore`, `eval`/`exec`,
   or bare `except` in `src/` — run `just unsafe` to verify.
-- **417 tests**, including property-based (`hypothesis`) runs against the live
-  oracle.
+- **417 native tests** plus **285 of the original suite's 297**, including
+  property-based (`hypothesis`) runs against the live oracle.
 - Every non-trivial divergence is recorded in [DECISIONS.md](./DECISIONS.md)
   with the evidence behind it.
 

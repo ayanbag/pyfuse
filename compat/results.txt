@@ -1,0 +1,37 @@
+fusejs-python — ORIGINAL fuse.js vitest suite, run against the Python port
+===========================================================================
+Command : npx vitest run --config compat/vitest.config.mjs
+Date    : 2026-08-02 20:54 UTC
+Test files are BYTE-FOR-BYTE UNMODIFIED. Only a vitest alias redirects
+'../dist/fuse.mjs' to a shim that delegates to fusejs-python.
+
+ ❯ test/match.test.js (14 tests | 1 failed) 603ms
+     × throws when useTokenSearch is true (full build) 23ms
+ ❯ test/optimizations.test.js (22 tests | 4 failed) 158ms
+     × limit honors a custom sortFn at a score tie 42ms
+     × limit matches a stable sort when a custom sortFn ties distinct items 7ms
+     × limit matches unlimited slice on a reordered index with a tying sortFn 10ms
+     × registers a custom searcher plugin 1ms
+ ❯ test/indexing.test.js (30 tests | 4 failed) 848ms
+     × createIndex: ensure keys can be created with getFn 16ms
+     × parseIndex: search with getFn 5ms
+     × toJSON: strips getFn from keys for serialization 2ms
+     × Add object to Index 18ms
+ ❯ test/token-search-tokenizer.test.js (14 tests | 3 failed) 951ms
+     × function tokenizer is exercised on a fixture (Intl.Segmenter optional) 14ms
+     × Intl.Segmenter recipe with isWordLike filter segments Chinese into words 4ms
+     × same custom tokenizer applied at index time and query time 4ms
+
+TOTALS
+------
+  Test files : 12  (8 fully passing, 4 with failures)
+  Tests      : 297 collected
+  Passed     : 285   (95.96%)
+  Failed     : 12
+
+All 12 failures are classified in compat/README.md:
+  10 - JavaScript callables (sortFn/getFn/tokenize/plugin) cannot cross
+       a language boundary.
+   1 - deliberate document-list copy (DECISIONS.md #13).
+   1 - error message corrected for Python (DECISIONS.md #19).
+  0 - port bugs.

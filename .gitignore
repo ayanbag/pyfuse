@@ -46,6 +46,7 @@ coverage.xml
 # tests/original/ is the vendored, hash-pinned fuse.js checkout: its
 # sources are committed, but never its installed deps or build output.
 node_modules/
+package-lock.json
 tests/original/node_modules/
 tests/original/dist/
 tests/original/coverage/
@@ -75,3 +76,4 @@ tmp/
 # needs to read lives in README.md or DECISIONS.md.
 LOG.md
 CLAUDE.md
+DETAILS.md

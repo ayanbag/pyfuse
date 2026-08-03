@@ -252,3 +252,54 @@ search, and its entry point guards each with an environment variable.
 reduced-build contract stays representable and its error paths remain
 reachable and testable rather than becoming dead code paths that were never
 ported at all.
+
+## 19. One error message is corrected rather than copied
+
+Every error message in this port is byte-identical to fuse.js's — with one
+deliberate exception:
+
+```
+fuse.js : "... Use new Fuse(...).search(...) instead."
+port     : "... Use Fuse(...).search(...) instead."
+```
+
+**Decision.** Drop the `new`. It is JavaScript syntax; telling a Python
+developer to type it would be actively wrong, and an error message exists to
+help the person reading it.
+
+This costs one test in the compatibility run (`throws when useTokenSearch is
+true`), which asserts the exact string. That failure is the divergence being
+observable, and is listed as such in `compat/README.md` rather than papered
+over.
+
+## 20. The original JS test suite runs against the port via a bridge
+
+**The problem.** "The original test suite passing against your port" is
+trivial for a same-language port and looks impossible across languages: the
+suite is JavaScript run by vitest, and the rules forbid editing it.
+
+**Decision.** Don't translate the tests — redirect them. All 13 behavioural
+spec files import the engine from one specifier, `'../dist/fuse.mjs'`. A
+vitest alias points that at a shim implementing the fuse.js API and delegating
+every call to the Python port over a JSON bridge. **No test file is modified.**
+
+The awkward constraint is that the tests call `fuse.search(...)`
+*synchronously*. Node cannot block on a pipe — `subprocess.stdin.fd` is not
+exposed and its pipes are non-blocking — so the bridge blocks the calling
+thread with `Atomics.wait` on a `SharedArrayBuffer` while a worker thread does
+the actual I/O. That in turn forces `pool: 'threads'`; under `pool: 'forks'`
+the runner deadlocks.
+
+**Result: 285 of 297 pass (95.96%).** None of the 12 failures is a port bug —
+ten are JavaScript callables (`sortFn`, `getFn`, function `tokenize`,
+`Fuse.use`) which cannot cross a language boundary at all, and two are the
+divergences documented in §13 and §19. Full classification in
+`compat/README.md`.
+
+Regex tokenizers *do* cross: they are sent as `{source, flags}` and rebuilt
+with `re.ASCII`, because JavaScript's `\w` is always ASCII-only while
+Python's is Unicode-aware by default.
+
+Like `fuzz/oracle.js`, this is test infrastructure. Nothing under `src/`
+imports it and the shipped package still has no Node dependency.
+

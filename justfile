@@ -33,6 +33,11 @@ test:
 diff:
     {{python}} -m pytest tests/port -m differential -v
 
+# Run the ORIGINAL, unmodified fuse.js vitest suite against the Python port.
+# Needs `npm install vitest` once. See compat/README.md.
+compat:
+    npx vitest run --config compat/vitest.config.mjs
+
 # Differential fuzz run. Override the duration: `just fuzz 120`.
 fuzz seconds="60":
     {{python}} fuzz/harness.py --seconds {{seconds}} --log fuzz/log.txt
