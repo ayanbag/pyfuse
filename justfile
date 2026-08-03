@@ -59,7 +59,7 @@ check:
     {{python}} -m ruff check src tests/port fuzz bench examples
     {{python}} -m ruff format --check src tests/port fuzz bench examples
     {{python}} -m mypy
-    {{python}} -m mypy --strict examples/demo.py
+    {{python}} -m mypy --strict examples
 
 # Count the escape hatches the Zero-Unsafe bonus is scored on.
 unsafe:

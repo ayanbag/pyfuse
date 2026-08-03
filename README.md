@@ -71,6 +71,24 @@ just demo --interactive    # ...then a live search prompt
 just playground            # serve the browser playground locally
 ```
 
+### Worked examples
+
+Three scripts in [`examples/`](./examples/) that use the port to solve a real
+problem rather than to show off an API. Each documents the option choices it
+made and why, and the numbers in the commentary were measured, not guessed.
+
+| | What it does |
+|---|---|
+| [`ticket_triage.py`](./examples/ticket_triage.py) | Routes messy free-text support tickets to a runbook, with cutoffs for auto-route / suggest / escalate. Shows why long queries need token search, and why IDF misleads on a small corpus. |
+| [`reconcile.py`](./examples/reconcile.py) | Fuzzy-joins two record sets after a migration drops the key — `ACME CORPORATION LTD` vs `Acme Corp. Limited`. Reports matched, needs-review, and missing in both directions. |
+| [`search_json.py`](./examples/search_json.py) | A general CLI: fuzzy-search any JSON or JSONL file, with inferred or explicit keys, extended operators and highlighted output. |
+
+```bash
+python examples/ticket_triage.py
+python examples/reconcile.py
+python examples/search_json.py tests/original/test/fixtures/books.json "ste ham"
+```
+
 ## Build and run
 
 One command:
