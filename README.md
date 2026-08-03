@@ -24,6 +24,39 @@
 
 ---
 
+## PyFuse at a glance
+
+<div align="center">
+
+**[▶ Open the slide deck](https://ayanbag.github.io/pyfuse/slides.html)** — arrow
+keys, swipe, `f` for fullscreen
+
+<a href="https://ayanbag.github.io/pyfuse/slides.html">
+  <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/01.png" width="720" alt="PyFuse — fuse.js, rebuilt in Python">
+</a>
+
+</div>
+
+<details>
+<summary><b>All 12 slides</b> — the gap · what was ported · 285/297 · the 12 failures · 0 divergences · the 1-ULP wall · where it's used · honest performance</summary>
+<br>
+
+<div align="center">
+
+| | |
+|:--:|:--:|
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/02.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/03.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/04.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/05.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/06.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/07.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/08.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/09.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/10.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/11.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/12.png" width="400"> | |
+
+</div>
+</details>
+
+---
+
 ## What it is
 
 fuse.js isn't a string-similarity function. It's a small search engine: you

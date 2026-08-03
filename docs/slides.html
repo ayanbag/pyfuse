@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PyFuse — Port Mortem 2026</title>
+<meta name="description" content="fuse.js, rebuilt in Python. Same results, proved — not claimed.">
+<style>
+  :root {
+    --ink: #1a1a1e; --muted: #6b6b74; --faint: #b4b4bc;
+    --accent: #c04a32; --good: #1e7a4c; --panel: #f4f3f0;
+    --bg: #fbfaf8; --card: #ffffff; --line: #e4e2dc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: #111114; color: var(--ink); overflow: hidden;
+    font-family: "Segoe UI", Inter, -apple-system, Helvetica, Arial, sans-serif;
+    display: grid; place-items: center;
+  }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* 16:9 stage that scales to the viewport */
+  #stage {
+    position: relative; width: 100vw; height: 56.25vw;
+    max-height: 100vh; max-width: 177.78vh;
+    background: var(--bg); overflow: hidden;
+  }
+  .slide {
+    position: absolute; inset: 0; padding: 5.2% 6%;
+    display: none; flex-direction: column;
+    container-type: size;
+  }
+  .slide.on { display: flex; }
+  /* everything scales off the stage width so it never breaks */
+  #stage { font-size: clamp(10px, 1.32vw, 22px); }
+  @media (min-aspect-ratio: 16/9) { #stage { font-size: clamp(10px, 2.35vh, 22px); } }
+
+  .kicker {
+    font-size: .58em; letter-spacing: .17em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; margin-bottom: .7em;
+  }
+  h1 { font-size: 1.85em; line-height: 1.15; letter-spacing: -.02em; margin-bottom: .8em; }
+  h1.big { font-size: 3.6em; margin-bottom: .25em; }
+  p { font-size: .95em; line-height: 1.55; color: var(--muted); }
+  p.lead { font-size: 1.15em; color: var(--ink); }
+  b, strong { color: var(--ink); }
+  .accent { color: var(--accent); }
+  .good { color: var(--good); }
+
+  .row { display: flex; gap: 1em; }
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; }
+  .cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; }
+  .card {
+    background: var(--panel); border-radius: .5em; padding: 1.1em 1.2em;
+  }
+  .card.plain { background: var(--card); border: 1px solid var(--line); }
+  .stat { font-size: 2.3em; font-weight: 700; line-height: 1; }
+  .stat + .label { font-size: .72em; color: var(--muted); margin-top: .5em; display: block; }
+
+  ul { list-style: none; }
+  li { font-size: .92em; margin-bottom: .55em; color: var(--muted); }
+  li b { color: var(--ink); font-weight: 600; }
+  .dot::before { content: "·"; color: var(--accent); margin-right: .6em; font-weight: 700; }
+
+  pre {
+    background: var(--card); border: 1px solid var(--line); border-radius: .5em;
+    padding: 1em 1.1em; font-size: .78em; line-height: 1.7; overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: .85em; }
+  td, th { padding: .45em .2em; text-align: left; }
+  th { color: var(--muted); font-weight: 600; font-size: .85em; }
+  tr + tr td { border-top: 1px solid var(--line); }
+
+  .spacer { flex: 1; }
+  .foot {
+    display: flex; justify-content: space-between;
+    font-size: .6em; color: var(--faint); padding-top: 1em;
+  }
+
+  /* chrome */
+  #bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--accent); z-index: 10; transition: width .25s; }
+  #nav {
+    position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: .55rem; align-items: center; z-index: 10;
+    background: rgba(20,20,24,.72); padding: .45rem .8rem; border-radius: 99px;
+    backdrop-filter: blur(6px);
+  }
+  #nav button {
+    background: none; border: 0; color: #d8d6d2; cursor: pointer;
+    font-size: .95rem; line-height: 1; padding: .2rem .35rem;
+  }
+  #nav button:hover { color: #fff; }
+  #count { color: #97959c; font-size: .78rem; min-width: 3.2rem; text-align: center; }
+  .zone { position: fixed; top: 0; bottom: 0; width: 28%; cursor: pointer; z-index: 5; }
+  .zone.l { left: 0; } .zone.r { right: 0; }
+  @media print {
+    body { overflow: visible; background: #fff; }
+    #nav, #bar, .zone { display: none; }
+    #stage { width: 100%; height: auto; max-width: none; max-height: none; }
+    .slide { display: flex !important; page-break-after: always; height: 100vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="bar"></div>
+<div class="zone l" onclick="go(-1)"></div>
+<div class="zone r" onclick="go(1)"></div>
+
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide on">
+    <div class="spacer"></div>
+    <div class="kicker">Port Mortem 2026 · Track H · TypeScript → Python</div>
+    <h1 class="big">PyFuse</h1>
+    <p class="mono" style="font-size:1.15em">$ pip install pyfusejs</p>
+    <div style="height:1.4em"></div>
+    <p class="lead">fuse.js, rebuilt in Python. Same results — proved, not claimed.</p>
+    <p style="margin-top:.5em">Ayan Bag · github.com/ayanbag/pyfuse</p>
+    <div class="spacer"></div>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <div class="kicker">the problem</div>
+    <h1>Python has no fuzzy search engine</h1>
+    <div class="cols">
+      <div class="card">
+        <b class="mono">rapidfuzz</b>
+        <p style="margin-top:.6em">Compares two strings.<br>That's the whole job.</p>
+      </div>
+      <div class="card plain" style="border-color:var(--accent)">
+        <b class="accent" style="font-size:1.5em">?</b>
+        <p style="margin-top:.4em;color:var(--ink)">Search a <b>collection</b>.
+          Weighted fields, nested paths, ranked results.</p>
+      </div>
+      <div class="card">
+        <b class="mono">Elasticsearch</b>
+        <p style="margin-top:.6em">A server to deploy, tune and pay for.</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <p class="lead"><b>fuse.js is exactly that missing middle — and it only runs in JavaScript.</b></p>
+    <p class="accent" style="margin-top:.4em;font-size:1em">The capability isn't missing from computing. It's trapped in the wrong ecosystem.</p>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>2</span></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <div class="kicker">what was ported</div>
+    <h1>Not a string matcher. A search engine.</h1>
+    <table>
+      <tr><td style="width:38%"><b>Bitap core</b></td><td class="mono">bit-parallel approximate matching, 32-char word</td></tr>
+      <tr><td><b>Weighted keys + nested paths</b></td><td class="mono">author.lastName, tags[], normalised weights</td></tr>
+      <tr><td><b>Extended query operators</b></td><td class="mono">=exact 'include ^prefix suffix$ !inverse</td></tr>
+      <tr><td><b>Logical composition</b></td><td class="mono">$and / $or query trees</td></tr>
+      <tr><td><b>Token search</b></td><td class="mono">inverted index with IDF / BM25-style ranking</td></tr>
+      <tr><td><b>Scoring</b></td><td class="mono">bitap × key weight × field-length norm</td></tr>
+    </table>
+    <div class="spacer"></div>
+    <p>~3,283 lines · zero runtime dependencies · <span class="mono">workers/*</span> excluded (DECISIONS §17)</p>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>3</span></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <div class="kicker">the standard</div>
+    <h1>A port is only worth as much as its proof</h1>
+    <p class="lead">Anyone can write a fuzzy search library.<br>
+      The hard part is proving it behaves like the original.</p>
+    <div style="height:1.6em"></div>
+    <p>So the original became an <b>oracle</b>:</p>
+    <ul style="margin-top:.9em">
+      <li><b>1.</b> &nbsp;Run the original JavaScript test suite against the Python port</li>
+      <li><b>2.</b> &nbsp;Fuzz both engines on identical random inputs and diff the output</li>
+      <li><b>3.</b> &nbsp;Write down every divergence, with evidence</li>
+    </ul>
+    <div class="spacer"></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>4</span></div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <div class="kicker">proof 1 of 2</div>
+    <h1>The original test suite, unmodified</h1>
+    <div class="cols">
+      <div class="card"><span class="stat good">285/297</span><span class="label">of fuse.js's own vitest tests pass</span></div>
+      <div class="card"><span class="stat good">0</span><span class="label">test files modified</span></div>
+      <div class="card"><span class="stat good">95.96%</span><span class="label">byte-for-byte identical suite</span></div>
+    </div>
+    <div style="height:1.1em"></div>
+    <pre class="mono">test/*.test.js  (UNMODIFIED)
+      ↓   import Fuse from '../dist/fuse.mjs'   ← vitest alias
+  fuse_shim.mjs → py_bridge.mjs (Atomics.wait) → server.py → pyfuse</pre>
+    <div class="spacer"></div>
+    <p>All 13 spec files import the engine from one specifier. Redirect that, and the tests run against Python.</p>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>5</span></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <div class="kicker">the honest part</div>
+    <h1>12 fail. None is a bug in the port.</h1>
+    <div class="row" style="margin-bottom:.8em">
+      <div class="card" style="min-width:3.4em;text-align:center"><span class="stat accent">10</span></div>
+      <div><b>JavaScript callables</b>
+        <p><span class="mono">sortFn, getFn, function tokenize, Fuse.use</span> — a closure over a live JS heap cannot be serialised</p></div>
+    </div>
+    <div class="row" style="margin-bottom:.8em">
+      <div class="card" style="min-width:3.4em;text-align:center"><span class="stat accent">1</span></div>
+      <div><b>Document-list copy</b>
+        <p>fuse.js mutates the caller's array; this port copies it — deliberate, DECISIONS §13</p></div>
+    </div>
+    <div class="row">
+      <div class="card" style="min-width:3.4em;text-align:center"><span class="stat accent">1</span></div>
+      <div><b>Corrected error message</b>
+        <p><span class="mono">"Use Fuse(...)"</span> not <span class="mono">"Use new Fuse(...)"</span> — <span class="mono">new</span> is JavaScript syntax, DECISIONS §19</p></div>
+    </div>
+    <div class="spacer"></div>
+    <p>Every failure is classified in <span class="mono">compat/README.md</span>. Nothing is suppressed to force a pass.</p>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>6</span></div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <div class="kicker">proof 2 of 2</div>
+    <h1>Differential fuzzing against the live oracle</h1>
+    <div class="cols">
+      <div class="card"><span class="stat">51,569</span><span class="label">random cases in 60 seconds</span></div>
+      <div class="card"><span class="stat good">0</span><span class="label">structural divergences</span></div>
+      <div class="card"><span class="stat">859/s</span><span class="label">throughput, long-lived Node oracle</span></div>
+    </div>
+    <div style="height:1.3em"></div>
+    <p class="lead"><b>Identical result sets · identical ordering · identical match indices · identical refIndex</b></p>
+    <div style="height:1em"></div>
+    <div class="card plain">
+      <p>Random datasets, queries and options generated with <b>hypothesis</b>, fed to both engines,
+         results compared field by field. Not example tests — property tests.</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>7</span></div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <div class="kicker">the one limit i could not close</div>
+    <h1>Scores agree to 1e-13, not to the bit</h1>
+    <pre class="mono">pow(0.1, 0.3846666666666666)
+   CPython : 0.4124139370464501      ← correctly rounded
+   V8      : 0.41241393704645002     ← fdlibm, not correctly rounded</pre>
+    <p style="margin-top:.7em">They disagree by exactly <b>1 ULP on 10.04% of calls</b>. Scoring does one <span class="mono">pow</span> per matched key.</p>
+    <div style="height:1em"></div>
+    <p class="lead"><b>I transcribed V8's fdlibm pow — 200 lines, 95.6% bit-exact — then stopped.</b></p>
+    <p style="margin-top:.5em">The residual error was uniform across every branch, which means the algorithm was right and
+      the target was wrong. Closing it meant reverse-engineering V8 with nothing to diff against.</p>
+    <div class="spacer"></div>
+    <div class="card"><p class="accent"><b>Consequence, disclosed: 1 ULP can break a score tie → 8 order flips in 51,569 (0.016%).</b></p></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>8</span></div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <div class="kicker">why differential testing earns its keep</div>
+    <h1>The fuzzer caught me being wrong</h1>
+    <div class="card">
+      <p style="font-size:1.1em">“The float divergence only affects the last digits.<br>It never changes the output.”</p>
+      <p style="margin-top:.6em;color:var(--faint)">— what I wrote in my notes, early on</p>
+    </div>
+    <div style="height:1.2em"></div>
+    <p class="lead">It was wrong. 1 ULP is enough to split an exact tie, and the tie-break then fires
+      in one engine but not the other — so ordering <b>does</b> change, 8 times in 51,569.</p>
+    <div style="height:.8em"></div>
+    <p>It is now its own category in <span class="mono">fuzz/log.txt</span>, and the claim is corrected in
+      README.md and DECISIONS §1 — rather than quietly dropped.</p>
+    <div class="spacer"></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>9</span></div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <div class="kicker">why i wanted it in python</div>
+    <h1>The problems that made me port it</h1>
+    <div class="cols2">
+      <div class="card">
+        <b style="font-size:1.25em">Ticket triage</b>
+        <p style="margin-top:.6em">10K+ free-text tickets a month. Misspelled services, pasted stack traces.</p>
+        <p style="margin-top:.5em">Fuzzy search is the cheap pre-filter before the expensive LLM path.</p>
+        <p style="margin-top:.6em"><b>→ 5 auto-routed · 1 suggested · 2 escalated</b></p>
+      </div>
+      <div class="card">
+        <b style="font-size:1.25em">Reconciliation</b>
+        <p style="margin-top:.6em">2M+ rows, Oracle → SQL Server. The join key does not survive the migration.</p>
+        <p class="mono" style="margin-top:.5em">ACME CORPORATION LTD<br>&nbsp;&nbsp;vs&nbsp; Acme Corp. Limited</p>
+        <p style="margin-top:.6em"><b>→ matched · needs-review · missing, both ways</b></p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <p class="accent">Both ship in <span class="mono">examples/</span> and run in one command. Everything I work on is Python. The tool was not.</p>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>10</span></div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <div class="kicker">code quality</div>
+    <h1>Idiomatic Python, not transliterated TypeScript</h1>
+    <div class="cols" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card"><span class="stat good">0</span><span class="label">runtime dependencies</span></div>
+      <div class="card"><span class="stat good">0</span><span class="label">casts / type: ignore</span></div>
+      <div class="card"><span class="stat">417</span><span class="label">native tests</span></div>
+      <div class="card"><span class="stat">20</span><span class="label">logged decisions</span></div>
+    </div>
+    <div style="height:1.3em"></div>
+    <ul>
+      <li class="dot"><span class="mono">mypy --strict</span> clean · ruff clean · no eval/exec, no bare except</li>
+      <li class="dot">Typed exception hierarchy instead of fuse.js's message-string matching</li>
+      <li class="dot">Diacritic ranges frozen from source, not derived from <span class="mono">unicodedata</span></li>
+      <li class="dot">Explicit max-heap: eviction order provably identical to the original's</li>
+    </ul>
+    <div class="spacer"></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>11</span></div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <div class="kicker">the number i am not hiding</div>
+    <h1>fuse.js is ~13x faster. That's fine.</h1>
+    <div class="card plain">
+      <table>
+        <tr><th></th><th>pyfuse</th><th>fuse.js</th></tr>
+        <tr><td>throughput</td><td class="mono">7.0 /s</td><td class="mono">92.8 /s</td></tr>
+        <tr><td>latency p99</td><td class="mono">637.0 ms</td><td class="mono">49.8 ms</td></tr>
+        <tr><td>peak RSS</td><td class="mono">31.3 MiB</td><td class="mono">53.7 MiB</td></tr>
+      </table>
+    </div>
+    <div style="height:.9em"></div>
+    <p>V8 JITs the Bitap inner loop; CPython interprets it. The value here is reach and parity, not speed —
+       and an honest regression is worth more than a cherry-picked win.</p>
+    <div class="spacer"></div>
+    <p class="mono" style="font-size:1.35em;text-align:center;color:var(--ink)"><b>just test · just compat · just fuzz · just demo</b></p>
+    <p style="text-align:center;margin-top:.5em">Every claim in this deck is one command away.</p>
+    <div class="spacer"></div>
+    <div class="foot"><span>PyFuse · fuse.js → Python</span><span>12</span></div>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button onclick="go(-1)" aria-label="previous">‹</button>
+  <span id="count" class="mono"></span>
+  <button onclick="go(1)" aria-label="next">›</button>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  let i = Math.min(Math.max(parseInt(location.hash.slice(1)) || 1, 1), slides.length) - 1;
+
+  function show() {
+    slides.forEach((s, n) => s.classList.toggle('on', n === i));
+    document.getElementById('count').textContent = `${i + 1} / ${slides.length}`;
+    document.getElementById('bar').style.width = `${((i + 1) / slides.length) * 100}%`;
+    history.replaceState(null, '', `#${i + 1}`);
+  }
+  function go(d) { i = Math.min(Math.max(i + d, 0), slides.length - 1); show(); }
+
+  addEventListener('keydown', e => {
+    if (['ArrowRight', ' ', 'PageDown', 'n'].includes(e.key)) { go(1); e.preventDefault(); }
+    if (['ArrowLeft', 'PageUp', 'p'].includes(e.key)) { go(-1); e.preventDefault(); }
+    if (e.key === 'Home') { i = 0; show(); }
+    if (e.key === 'End') { i = slides.length - 1; show(); }
+    if (e.key === 'f') document.documentElement.requestFullscreen?.();
+  });
+
+  // swipe
+  let x0 = null;
+  addEventListener('touchstart', e => x0 = e.touches[0].clientX, { passive: true });
+  addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 45) go(dx < 0 ? 1 : -1);
+    x0 = null;
+  }, { passive: true });
+
+  show();
+</script>
+</body>
+</html>
