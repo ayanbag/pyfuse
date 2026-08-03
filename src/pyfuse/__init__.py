@@ -47,8 +47,12 @@ from .types import (
     SearchResult,
 )
 
-#: The fuse.js release this port tracks.
-__version__ = "7.5.0"
+#: This package's own version, independent of upstream. The fuse.js release
+#: being ported is v7.5.0 and is recorded in DECISIONS.md; conflating the two
+#: would mean this port could never ship a fix without inventing an upstream
+#: release that does not exist. Kept in step with ``pyproject.toml`` by
+#: ``tests/port/test_packaging.py``.
+__version__ = "1.5.0"
 
 # Registration order is significant — `create_searcher` takes the first
 # searcher whose `condition` accepts, so a query with both options enabled
