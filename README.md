@@ -38,11 +38,18 @@ whole point of this port.
 ## Install
 
 ```bash
-pip install pyfuse
+pip install pyfusejs      # the distribution
+```
+```python
+from pyfuse import Fuse   # the import
 ```
 
-Python 3.10+. No runtime dependencies — the only thing that lands in your
-environment is this package.
+The two names differ because `pyfuse` was already registered on PyPI. This is
+ordinary — `python-dateutil` imports as `dateutil`, `beautifulsoup4` as `bs4` —
+but it is worth stating once rather than leaving you to discover it.
+
+Python 3.10+. No runtime dependencies: `pyfusejs` is the only thing that lands
+in your environment.
 
 ## Quick start
 
