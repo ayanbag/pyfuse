@@ -1,0 +1,14 @@
+{
+  "name": "pyfuse-test-harness",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Test infrastructure only. The shipped Python package has no Node dependency — fuse.js is used solely as a differential oracle and to run its own vitest suite against the port. See compat/README.md and DECISIONS.md §20.",
+  "scripts": {
+    "compat": "vitest run --config compat/vitest.config.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  },
+  "license": "Apache-2.0"
+}
