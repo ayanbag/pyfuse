@@ -37,7 +37,7 @@ keys, swipe, `f` for fullscreen
 
 </div>
 
-<details>
+<!-- <details>
 <summary><b>All 12 slides</b> — the gap · what was ported · 285/297 · the 12 failures · 0 divergences · the 1-ULP wall · where it's used · honest performance</summary>
 <br>
 
@@ -53,7 +53,7 @@ keys, swipe, `f` for fullscreen
 | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/12.png" width="400"> | |
 
 </div>
-</details>
+</details> -->
 
 ---
 
