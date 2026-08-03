@@ -1,7 +1,7 @@
 # compat/ — running the original fuse.js test suite against the Python port
 
-**Result: 285 of 297 original tests pass (95.96%), with every test file
-byte-for-byte unmodified.**
+**285 of 297 original tests pass (95.96%), with every test file byte-for-byte
+unmodified.**
 
 ```bash
 npx vitest run --config compat/vitest.config.mjs
@@ -9,25 +9,25 @@ npx vitest run --config compat/vitest.config.mjs
 just compat
 ```
 
-## The problem this solves
+## The problem
 
-Deliverable 3 asks for "the original test suite passing against your port".
-For a same-language port that's trivial. For TypeScript → Python it looks
-impossible: the suite is JavaScript, run by vitest, and the rules forbid
-editing it.
+Deliverable 3 asks for "the original test suite passing against your port."
+If you ported Rust to Rust that's a build flag. Going TypeScript → Python it
+looks flatly impossible: the suite is JavaScript, vitest runs it, and the rules
+forbid editing a single character of it.
 
-## The approach
+## What made it possible
 
-The suite imports the engine from exactly one place:
+Every behavioural spec pulls the engine in from the same place:
 
 ```javascript
 import Fuse from '../dist/fuse.mjs'   // 13 of the test files
 ```
 
-So: point that specifier somewhere else. `vitest.config.mjs` aliases it to
-`fuse_shim.mjs`, which implements the fuse.js API and forwards every call to
-the Python port. The test files are never touched — only the module they
-resolve `Fuse` to.
+One specifier, thirteen files. So don't touch the tests — move what that
+specifier resolves to. `vitest.config.mjs` aliases it to `fuse_shim.mjs`, which
+presents the fuse.js API and forwards every call down to Python. The tests
+never find out.
 
 ```
  test/*.test.js  (UNMODIFIED)
@@ -43,58 +43,61 @@ resolve `Fuse` to.
     server.py             Python: drives the real fusejs port
 ```
 
-## The hard part: the calls must be synchronous
+## The hard part: the calls have to be synchronous
 
-The tests do this:
+The tests look like this:
 
 ```javascript
-const result = fuse.search('old man')   // synchronous
+const result = fuse.search('old man')   // no await anywhere
 expect(result.length).toBe(1)
 ```
 
-There is no `await`, and adding one would mean editing the tests. So the
-bridge has to **block**.
+There's no `await`, and adding one means editing the tests. So the bridge has
+to genuinely block.
 
-Node cannot block on a pipe: `subprocess.stdin.fd` is not exposed, and its
-pipes are non-blocking. The way through is `Atomics.wait`:
+Node won't let you block on a pipe. `subprocess.stdin.fd` isn't exposed and the
+pipes are non-blocking, so there's no `readSync` to reach for. The way through
+is `Atomics.wait`:
 
-1. The main thread posts the request to a worker thread and calls
-   `Atomics.wait` on a `SharedArrayBuffer` — this genuinely blocks it.
-2. The worker does the pipe I/O asynchronously, which Node is happy to do.
-3. When the reply arrives, the worker stores `1` and calls `Atomics.notify`.
-4. The main thread wakes, reads the message, and returns it — synchronously,
-   as far as the test can tell.
+1. The main thread posts the request to a worker thread, then calls
+   `Atomics.wait` on a `SharedArrayBuffer`. That really does block it.
+2. The worker does the pipe I/O asynchronously, which Node is perfectly happy
+   with.
+3. When the reply lands, the worker stores `1` and calls `Atomics.notify`.
+4. The main thread wakes up, reads the message, returns it. As far as the test
+   can tell, `search()` was synchronous.
 
-This also dictates `pool: 'threads'` in the vitest config. Under
-`pool: 'forks'` the runner deadlocks: a forked child cannot service the
-`Atomics.wait` because the bridge worker lives in the same process.
+This is also why the config says `pool: 'threads'`. Under `pool: 'forks'` the
+runner just hangs forever — a forked child can't service the `Atomics.wait`,
+because the bridge worker lives in the same process. That cost an evening.
 
-## What is excluded, and why
+## What's excluded, and why
 
-Six spec files are excluded in `vitest.config.mjs`. All are JavaScript
-*packaging* concerns with no Python meaning — not behaviour:
+Six spec files are excluded in `vitest.config.mjs`. All six are JavaScript
+*packaging* concerns with no Python meaning at all — none of them is testing
+search behaviour:
 
 | File | Why |
 |---|---|
 | `workers.test.js`, `fuse-worker.test.js`, `worker-url.test.js` | Web Worker / worker-thread parallelism — out of scope (DECISIONS.md §17) |
 | `cjs-interop.test.js` | CommonJS vs ESM module interop |
 | `feature-flags.test.js` | Build-time flags; this port ships one build |
-| `cache-invalidation.test.js` | Imports internal TypeScript source, not the public API |
+| `cache-invalidation.test.js` | Imports internal TypeScript source rather than the public API |
 
-`internals.test.ts`, `package-types.test.ts` and `typings.test.ts` are not
-collected either — they test TypeScript type declarations.
+`internals.test.ts`, `package-types.test.ts` and `typings.test.ts` aren't
+collected either — they assert things about TypeScript declaration files.
 
-## The 12 remaining failures
+## The 12 that fail
 
-**None is a bug in the port.** Every one is either a language-boundary
-limitation or a divergence this project chose deliberately and documented.
+None of them is a bug in the port. Each is either a hard language-boundary
+limit or a divergence this project picked deliberately and wrote down.
 
-### Ten: JavaScript callables cannot cross a language boundary
+### Ten: you can't send a JavaScript function to Python
 
-A function is a closure over a live JS heap. It cannot be serialised to JSON
-and rebuilt in Python. Where the suite supplies one, the bridge refuses the
-call loudly rather than quietly substituting a default — which would make a
-test pass for the wrong reason.
+A function is a closure over a live JS heap. There is no JSON encoding of that.
+Where the suite supplies one, the bridge refuses the call loudly rather than
+quietly falling back to a default — a default would make the test go green for
+entirely the wrong reason, which is worse than failing.
 
 | Test | Callable |
 |---|---|
@@ -109,43 +112,43 @@ test pass for the wrong reason.
 | `same custom tokenizer applied at index time and query time` | `tokenize` |
 | `registers a custom searcher plugin` | `Fuse.use(class)` |
 
-Note the bridge *does* carry **regex** tokenizers — `/[\w.+-]+/g` is sent as
-`{source, flags}` and rebuilt with `re.ASCII`, because JavaScript's `\w` is
-always ASCII-only while Python's is Unicode-aware. Those tests pass.
+Regexes, unlike functions, *do* cross. A tokenizer like `/[\w.+-]+/g` is sent
+as `{source, flags}` and rebuilt on the Python side with `re.ASCII` — because
+JavaScript's `\w` is ASCII-only always, even under `u`, while Python's is
+Unicode-aware. Those tests pass.
 
-The Python port supports all of these features natively; you simply cannot
-hand a Python function to it *from JavaScript*.
+The port supports every one of these features natively. You just can't hand it
+a Python function *from JavaScript*.
 
 ### One: the deliberate document-list copy
 
-`Add object to Index` asserts `refIndex === Books.length - 1` **after** adding
-a document. That only holds because fuse.js keeps the caller's array by
-reference and `add()` pushes into it — so `Books.length` grows too.
+`Add object to Index` asserts `refIndex === Books.length - 1` after adding a
+document. That only holds because fuse.js keeps the caller's array by reference
+and `add()` pushes into it, so `Books.length` grows as a side effect of the
+call.
 
-This port copies the list instead (DECISIONS.md §13), because silently
-mutating an argument is surprising in Python. The test failing is the
-divergence being observable, exactly as documented — not a defect.
+This port copies the list instead (DECISIONS.md §13). The test failing *is* the
+divergence being observable, precisely as documented.
 
 ### One: an error message corrected for Python
 
-`Fuse.match(..., {useTokenSearch: true})` throws, correctly, and with the same
-message except for four characters:
+`Fuse.match(..., {useTokenSearch: true})` throws, correctly, with the same
+message apart from four characters:
 
 ```
 fuse.js : "... Use new Fuse(...).search(...) instead."
-port     : "... Use Fuse(...).search(...) instead."
+port    : "... Use Fuse(...).search(...) instead."
 ```
 
-`new` is JavaScript syntax. Telling a Python user to type it would be wrong.
-See DECISIONS.md §19.
+`new` is JavaScript syntax. See DECISIONS.md §19.
 
 ## Honesty notes
 
-- This bridge is **test infrastructure only**. Nothing under `src/` imports
-  it, and the shipped package has no Node dependency. The "no source-language
-  runtime" rule applies to the *port*, not to its test harness — the same way
-  `fuzz/oracle.js` runs fuse.js as an oracle.
-- The bridge adds a JSON round-trip per call, so these tests are slower than
-  the native `pytest` suite. They measure *behaviour*, never performance.
-- Failures are surfaced, never suppressed. There is no try/catch that turns a
-  bridge limitation into a pass.
+- This bridge is **test infrastructure and nothing else**. Nothing under `src/`
+  imports it, and the shipped package has no Node dependency. The
+  "no source-language runtime" rule is about the *port*, not its test harness —
+  same status as `fuzz/oracle.js`, which runs fuse.js as an oracle.
+- Every call is a JSON round-trip, so this run is much slower than the native
+  `pytest` suite. It measures behaviour. Never read a timing off it.
+- Failures are surfaced, never swallowed. There's no try/catch anywhere in here
+  that turns a bridge limitation into a pass.

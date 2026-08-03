@@ -1,37 +1,39 @@
 # fusejs-python
 
-> A behaviourally-equivalent Python port of **[fuse.js](https://github.com/krisk/Fuse)** —
-> the lightweight fuzzy-search engine — built for **Port Mortem 2026**
-> (Track H, Open Pair: **TypeScript → Python**).
+A Python port of **[fuse.js](https://github.com/krisk/Fuse)**, the fuzzy-search
+library, built for **Port Mortem 2026** (Track H, Open Pair: TypeScript →
+Python). The goal was behavioural equivalence with the original, not a
+lookalike API.
 
 ---
 
-## What this is
+## What it is
 
-fuse.js isn't a string-similarity function — it's a fuzzy-search **engine**: it
-searches collections of records with typo-tolerant matching (a modified Bitap
-algorithm), weighted keys, nested-path lookups, extended-query operators
-(`=exact`, `^prefix`, `!inverse`, …), logical `$and`/`$or` queries, token search
-with IDF ranking, and relevance scoring.
+fuse.js isn't a string-similarity function. It's a small search engine: you
+give it a list of records, it gives you ranked matches, and it tolerates typos
+along the way. Under the hood that's a modified Bitap scan plus weighted keys,
+nested-path lookups, extended-query operators (`=exact`, `^prefix`,
+`!inverse`, and friends), `$and`/`$or` composition, token search with IDF
+ranking, and a scoring pass to tie it together.
 
-This project reimplements that engine in **idiomatic Python**. It is a genuine
-reimplementation, **not a wrapper**: the shipped package has zero runtime
-dependencies and no Node/JavaScript anywhere. fuse.js is used only as a *test
-oracle* to prove equivalence.
+This is a real reimplementation of that engine in Python, not a wrapper. The
+package has zero runtime dependencies and there is no Node anywhere in it.
+fuse.js does show up in this repo, but only as a test oracle — something to
+diff against.
 
-## Why port it to Python — Track H rationale
+## Why Python needs this
 
-Python already has excellent **string-to-string** fuzzy matching — `rapidfuzz`,
-`thefuzz`. What it lacks is an equivalent to fuse.js's fuzzy **search engine**:
-searching a *collection of records* with weighted fields, nested-path access,
-extended and logical query operators, and relevance ranking, with no heavyweight
-search backend (Elasticsearch, Typesense) required.
+Python's fuzzy-matching story is good if you're comparing two strings.
+`rapidfuzz` and `thefuzz` are fast and well maintained. It falls apart the
+moment you want to search a *collection*: weighted fields, nested paths, query
+operators, relevance ranking. At that point your options are to write scoring
+by hand or to stand up Elasticsearch, and neither is proportionate to "find the
+right row in these 5,000 records."
 
-JavaScript serves data-science, ML, and backend-pipeline workflows poorly — so
-this capability is effectively trapped outside the ecosystem where Python
-dominates. Porting fuse.js gives Python developers client-quality fuzzy search
-that drops straight into pandas/Jupyter/FastAPI stacks. That is a real ecosystem
-gap, and closing it is this migration's reason to exist.
+fuse.js is exactly the missing middle, and it only runs in JavaScript — an
+ecosystem that most data and backend work has already left. So the capability
+exists, it's just on the wrong side of a language boundary. Moving it is the
+whole point of this port.
 
 ## Quick start
 
@@ -48,11 +50,10 @@ for result in fuse.search("old man"):
     print(result.item["title"], result.score)
 ```
 
-Options are snake_case, as Python expects; the camelCase spellings from the
-JavaScript API are accepted too, so a config shared with a JS codebase works
-unchanged.
+Options are snake_case the way Python expects. The camelCase spellings are
+accepted too, so a config file shared with a JS codebase works as-is.
 
-## Build & run
+## Build and run
 
 One command:
 
@@ -60,13 +61,13 @@ One command:
 just build      # install + verify it imports
 ```
 
-or, with no local Python at all:
+Or, if you'd rather not have Python locally:
 
 ```bash
 docker build -t fusejs-python . && docker run --rm fusejs-python
 ```
 
-Everything else:
+The rest:
 
 ```bash
 just test       # the ported pytest suite (417 tests)
@@ -78,60 +79,63 @@ just check      # ruff + mypy --strict
 just unsafe     # escape-hatch census
 ```
 
-## The original fuse.js test suite runs against this port
+## The original fuse.js suite runs against this port
 
-**285 of 297 original tests pass (95.96%) — every test file byte-for-byte
-unmodified.**
+**285 of 297 pass (95.96%), with every test file byte-for-byte unmodified.**
 
-The suite is JavaScript, run by vitest. Rather than translate it, a vitest
-alias redirects the one import every spec shares — `'../dist/fuse.mjs'` — to a
-shim that delegates each call to the Python port. Nothing in `tests/original/`
-is touched.
+The suite is JavaScript, run by vitest, and the rules say don't touch it. The
+way through turned out to be small: all 13 behavioural spec files import the
+engine from the same specifier, `'../dist/fuse.mjs'`. Point a vitest alias at a
+shim that speaks the fuse.js API and forwards every call to Python, and the
+tests run unchanged without ever knowing what's underneath.
 
 ```bash
-just compat     # see compat/README.md
+just compat     # see compat/README.md for how it works
 ```
 
-None of the 12 failures is a port bug: ten are JavaScript callables
-(`sortFn`, `getFn`, function `tokenize`, `Fuse.use`) that cannot cross a
-language boundary, and two are divergences this port chose deliberately and
-documented ([DECISIONS.md](./DECISIONS.md) §13 and §19). Every one is
-classified in [`compat/README.md`](./compat/README.md); the run output is
-committed as [`compat/results.txt`](./compat/results.txt).
+None of the 12 failures is a bug in the port. Ten of them hand fuse.js a
+JavaScript function (`sortFn`, `getFn`, a callable `tokenize`, `Fuse.use`),
+and a closure over a live JS heap cannot be serialised into Python at any
+price. The other two are divergences this port chose on purpose and wrote down
+([DECISIONS.md](./DECISIONS.md) §13 and §19) — those tests failing is the
+documentation being true. All twelve are named individually in
+[`compat/README.md`](./compat/README.md), and the run output is committed as
+[`compat/results.txt`](./compat/results.txt).
 
-## Equivalence: what is claimed, precisely
+## What "equivalent" actually means here
 
-**Structure is identical.** Result sets, ordering, match indices, keys, and
-refIndex match fuse.js exactly. Verified by a 60-second differential fuzz run:
+**Structure matches exactly.** Result sets, ordering, match indices, keys,
+refIndex. A 60-second differential fuzz run against the live fuse.js oracle:
 
 ```
 cases                  : 51,569  (859/s)
 STRUCTURAL DIVERGENCES : 0
 ```
 
-**Scores agree to ~1e-13 relative, not bit-for-bit.** This is not a porting
-shortcut — it is not achievable. CPython and V8 ship different libm
-implementations of `pow` and `log`: CPython's are correctly rounded, V8's are
-not, and they disagree by 1 ULP on ~10% of calls. Scoring multiplies one `pow`
-per matched key, so it compounds. Worst measured divergence across 45k fuzz
-cases: **8.5e-14 relative**.
+**Scores agree to about 1e-13 relative, not to the bit.** This one isn't a
+shortcut, it's a wall. CPython and V8 ship different `pow` and `log`: CPython's
+are correctly rounded, V8's are not, and on roughly 10% of the calls the
+scorer makes they disagree by 1 ULP. Scoring does one `pow` per matched key, so
+that error rides through the whole chain. Worst case measured across 45k fuzz
+cases was 8.5e-14 relative.
 
-**One user-visible consequence, disclosed.** 1 ULP is enough to split an exact
-score tie, and the tie-break then fires in one engine but not the other — so
-two engines can return the same documents in a different order, and under a
-`limit`, a different document can make the cut. Measured rate: **8 in 51,569
-cases (0.016%)**. Reported as its own category in `fuzz/log.txt` rather than
-hidden.
+**And yes, that has one visible consequence.** 1 ULP is enough to break an
+exact score tie, which means the tie-break fires in one engine and not the
+other, and the two return the same documents in a different order. Under a
+`limit`, a different document can make the cut. It happened in **8 of 51,569
+cases (0.016%)**. `fuzz/log.txt` reports it as its own category instead of
+burying it in the score-noise bucket — I'd claimed earlier that ordering was
+never affected, and the fuzz run is what proved me wrong.
 
-The full analysis, including the ~200-line fdlibm `Math.pow` transcription that
-reached 95.6% bit-exact and why it stopped there, is in
-[DECISIONS.md](./DECISIONS.md).
+The full write-up, including the ~200-line fdlibm `Math.pow` transcription that
+got to 95.6% bit-exact and why chasing the last 4.4% was the wrong use of the
+remaining time, is in [DECISIONS.md](./DECISIONS.md).
 
-## Performance — honest numbers
+## Performance
 
-**fuse.js is ~13x faster on throughput.** Expected: V8 JIT-compiles the Bitap
-inner loop, CPython interprets it. The port's value is ecosystem reach and
-parity, not speed.
+**fuse.js is about 13x faster.** That was always going to happen: V8 JITs the
+Bitap inner loop and CPython interprets it. What this port buys you is reach
+and parity, not speed, and it would be dishonest to present it otherwise.
 
 | | fusejs-python | fuse.js |
 |---|---|---|
@@ -141,33 +145,35 @@ parity, not speed.
 | startup | 13.7 ms | 7.7 ms |
 | peak RSS | **31.3 MiB** | 53.7 MiB |
 
-400 documents, 4 keys, 150 queries, both engines warmed up. Full method,
-confounders, and why the RSS figure should not be over-read:
-[`bench/methodology.md`](./bench/methodology.md).
+400 documents, 4 keys, 150 queries, both engines warmed up first. The method,
+the confounders, and why you shouldn't read too much into the RSS number are
+all in [`bench/methodology.md`](./bench/methodology.md).
 
 ## Engineering notes
 
-- **Zero runtime dependencies**, mirroring fuse.js's own zero-dep design.
-- **`mypy --strict` clean**, with **zero** `cast`, `type: ignore`, `eval`/`exec`,
-  or bare `except` in `src/` — run `just unsafe` to verify.
-- **417 native tests** plus **285 of the original suite's 297**, including
-  property-based (`hypothesis`) runs against the live oracle.
-- Every non-trivial divergence is recorded in [DECISIONS.md](./DECISIONS.md)
-  with the evidence behind it.
+- Zero runtime dependencies, same as fuse.js itself.
+- `mypy --strict` clean, and zero `cast`, `type: ignore`, `eval`/`exec` or bare
+  `except` anywhere in `src/`. `just unsafe` counts them if you don't believe
+  it.
+- 417 native tests, plus 285 of the original suite's 297. Some of the native
+  ones are property-based (`hypothesis`) and run against the live oracle rather
+  than against fixed expectations.
+- Anything that diverges is in [DECISIONS.md](./DECISIONS.md) with the evidence
+  that led there.
 
 ## Scope
 
 Ported in full: the Bitap core, indexing and key weighting, scoring, extended
-search, logical queries, and token search with IDF ranking — ~3,283 lines.
+search, logical queries, token search with IDF ranking. About 3,283 lines.
 
-Out of scope: `src/workers/*` (Web Worker / worker-thread parallelism), which
-is JS-runtime plumbing rather than search behaviour. See
-[DECISIONS.md](./DECISIONS.md).
+Left out: `src/workers/*`, the Web Worker and worker-thread plumbing. It's
+JS-runtime machinery rather than search behaviour, and the reasoning is in
+[DECISIONS.md](./DECISIONS.md) §17.
 
-## Attribution & license
+## Attribution and license
 
 Ported from **fuse.js** ([krisk/Fuse](https://github.com/krisk/Fuse)),
-© Kirollos Risk, licensed **Apache-2.0**. This port is likewise **Apache-2.0**.
-See [NOTICE](./NOTICE).
+© Kirollos Risk, Apache-2.0. This port is Apache-2.0 as well. See
+[NOTICE](./NOTICE).
 
 Pinned source commit: `45bac9f` (tag `v7.5.0`).
