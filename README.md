@@ -1,19 +1,24 @@
-# pyfuse
+<div align="center">
 
-[![PyPI](https://img.shields.io/pypi/v/pyfusejs?color=3775a9&logo=pypi&logoColor=white)](https://pypi.org/project/pyfusejs/)
-[![Python](https://img.shields.io/pypi/pyversions/pyfusejs?logo=python&logoColor=white)](https://pypi.org/project/pyfusejs/)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](https://github.com/ayanbag/pyfuse/blob/main/LICENSE)
-[![Playground](https://img.shields.io/badge/demo-live%20in%20browser-brightgreen)](https://ayanbag.github.io/pyfuse/)
+<img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/banner.png" alt="pyfuse — fuzzy search over records, a Python port of fuse.js" width="880">
 
-[![Dependencies](https://img.shields.io/badge/runtime%20dependencies-0-success)](https://github.com/ayanbag/pyfuse/blob/main/pyproject.toml)
-[![Typed](https://img.shields.io/badge/mypy-strict-blue)](https://github.com/ayanbag/pyfuse/blob/main/pyproject.toml)
-[![Tests](https://img.shields.io/badge/tests-417%20passing-success)](https://github.com/ayanbag/pyfuse/tree/main/tests/port)
-[![Fuzz](https://img.shields.io/badge/differential%20fuzz-0%20divergences%20%2F%2051%2C569-success)](https://github.com/ayanbag/pyfuse/blob/main/fuzz/log.txt)
+<p>
+  <a href="https://pypi.org/project/pyfusejs/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pyfusejs?color=3775a9&logo=pypi&logoColor=white"></a>
+  <a href="https://pypi.org/project/pyfusejs/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/pyfusejs?logo=python&logoColor=white"></a>
+  <a href="https://github.com/ayanbag/pyfuse/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
+  <a href="https://ayanbag.github.io/pyfuse/"><img alt="Live demo" src="https://img.shields.io/badge/demo-live%20in%20browser-brightgreen"></a>
+  <a href="https://github.com/ayanbag/pyfuse/tree/main/tests/port"><img alt="Tests" src="https://img.shields.io/badge/tests-417%20passing-success"></a>
+</p>
 
-A Python port of **[fuse.js](https://github.com/krisk/Fuse)**, the fuzzy-search
-library, originally built for **Port Mortem 2026** (Track H, Open Pair: TypeScript →
-Python). The main goal was behavioural equivalence with the original, not a
-lookalike API.
+<p>
+  <b>Fuzzy search over records</b> — weighted keys, nested paths, extended
+  queries, IDF token ranking.<br>
+  A behavioural Python port of <a href="https://github.com/krisk/Fuse">fuse.js</a>,
+  originally built for <b>Port Mortem 2026</b> (Track H, TypeScript → Python).<br>
+  The goal was equivalence with the original, not a lookalike API.
+</p>
+
+</div>
 
 ---
 
