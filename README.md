@@ -22,38 +22,6 @@
 
 </div>
 
----
-
-## PyFuse at a glance
-
-<div align="center">
-
-**[▶ Open the slide deck](https://ayanbag.github.io/pyfuse/slides.html)** — arrow
-keys, swipe, `f` for fullscreen
-
-<a href="https://ayanbag.github.io/pyfuse/slides.html">
-  <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/01.png" width="720" alt="PyFuse — fuse.js, rebuilt in Python">
-</a>
-
-</div>
-
-<!-- <details>
-<summary><b>All 12 slides</b> — the gap · what was ported · 285/297 · the 12 failures · 0 divergences · the 1-ULP wall · where it's used · honest performance</summary>
-<br>
-
-<div align="center">
-
-| | |
-|:--:|:--:|
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/02.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/03.png" width="400"> |
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/04.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/05.png" width="400"> |
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/06.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/07.png" width="400"> |
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/08.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/09.png" width="400"> |
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/10.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/11.png" width="400"> |
-| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/12.png" width="400"> | |
-
-</div>
-</details> -->
 
 ---
 
@@ -250,6 +218,40 @@ and parity, not speed, and it would be dishonest to present it otherwise.
 400 documents, 4 keys, 150 queries, both engines warmed up first. The method,
 the confounders, and why you shouldn't read too much into the RSS number are
 all in [`bench/methodology.md`](https://github.com/ayanbag/pyfuse/blob/main/bench/methodology.md).
+
+
+
+## PyFuse at a glance
+
+<div align="center">
+
+**[▶ Open the slide deck](https://ayanbag.github.io/pyfuse/slides.html)** — arrow
+keys, swipe, `f` for fullscreen
+
+<a href="https://ayanbag.github.io/pyfuse/slides.html">
+  <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/01.png" width="720" alt="PyFuse — fuse.js, rebuilt in Python">
+</a>
+
+</div>
+
+<!-- <details>
+<summary><b>All 12 slides</b> — the gap · what was ported · 285/297 · the 12 failures · 0 divergences · the 1-ULP wall · where it's used · honest performance</summary>
+<br>
+
+<div align="center">
+
+| | |
+|:--:|:--:|
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/02.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/03.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/04.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/05.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/06.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/07.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/08.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/09.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/10.png" width="400"> | <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/11.png" width="400"> |
+| <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/slides/12.png" width="400"> | |
+
+</div>
+</details> -->
+
 
 ## Engineering notes
 
