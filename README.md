@@ -2,6 +2,7 @@
 
 <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/banner.png" alt="pyfuse — fuzzy search over records, a Python port of fuse.js" width="880">
 
+<p></p>
 
 <p>
   <a href="https://pypi.org/project/pyfusejs/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pyfusejs?color=3775a9&logo=pypi&logoColor=white"></a>
