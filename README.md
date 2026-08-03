@@ -2,9 +2,10 @@
 
 <img src="https://raw.githubusercontent.com/ayanbag/pyfuse/main/assets/banner.png" alt="pyfuse — fuzzy search over records, a Python port of fuse.js" width="880">
 
+
 <p>
   <a href="https://pypi.org/project/pyfusejs/"><img alt="PyPI" src="https://img.shields.io/pypi/v/pyfusejs?color=3775a9&logo=pypi&logoColor=white"></a>
-  <a href="https://pypi.org/project/pyfusejs/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/pyfusejs?logo=python&logoColor=white"></a>
+  <!-- <a href="https://pypi.org/project/pyfusejs/"><img alt="Python versions" src="https://img.shields.io/pypi/pyversions/pyfusejs?logo=python&logoColor=white"></a> -->
   <a href="https://github.com/ayanbag/pyfuse/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
   <a href="https://ayanbag.github.io/pyfuse/"><img alt="Live demo" src="https://img.shields.io/badge/demo-live%20in%20browser-brightgreen"></a>
   <a href="https://github.com/ayanbag/pyfuse/tree/main/tests/port"><img alt="Tests" src="https://img.shields.io/badge/tests-417%20passing-success"></a>
@@ -14,7 +15,7 @@
   <b>Fuzzy search over records</b> — weighted keys, nested paths, extended
   queries, IDF token ranking.<br>
   A behavioural Python port of <a href="https://github.com/krisk/Fuse">fuse.js</a>,
-  originally built for <b>Port Mortem 2026</b> (Track H, TypeScript → Python).<br>
+  originally built for <b>Port Mortem 2026</b>.<br>
   The goal was equivalence with the original, not a lookalike API.
 </p>
 
