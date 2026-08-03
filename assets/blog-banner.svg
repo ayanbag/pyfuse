@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="pyfuse — fuzzy search for Python">
+  <title>pyfuse — fuzzy search for Python</title>
+  <style>
+    .sans { font-family: "Segoe UI", Inter, -apple-system, Helvetica, Arial, sans-serif; }
+    .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  </style>
+
+  <rect width="1200" height="800" fill="#16161b"/>
+
+  <!-- icon tile: "approximately equal" is what fuzzy matching means -->
+  <rect x="536" y="172" width="128" height="128" rx="30" fill="#ffd166"/>
+  <g stroke="#16161b" stroke-width="13" stroke-linecap="round" fill="none">
+    <path d="M574 216 q13 -15 26 0 t26 0"/>
+    <path d="M574 256 q13 -15 26 0 t26 0"/>
+  </g>
+
+  <!-- wordmark -->
+  <text class="sans" x="600" y="392" font-size="76" font-weight="700"
+        fill="#f4f2ee" text-anchor="middle" letter-spacing="-1.5">pyfuse</text>
+
+  <!-- stacked tagline -->
+  <text class="sans" x="600" y="450" font-size="25" font-weight="600"
+        fill="#ffd166" text-anchor="middle">fuzzy search</text>
+  <text class="sans" x="600" y="486" font-size="25" font-weight="600"
+        fill="#ffd166" text-anchor="middle">over records</text>
+  <text class="sans" x="600" y="522" font-size="25" font-weight="600"
+        fill="#ffd166" text-anchor="middle">for python</text>
+
+  <!-- what it is, in one quiet line -->
+  <text class="sans" x="600" y="590" font-size="19" fill="#8e8b96" text-anchor="middle">
+    a behavioural port of fuse.js · zero dependencies
+  </text>
+</svg>

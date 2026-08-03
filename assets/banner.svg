@@ -1,96 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="pyfuse — fuzzy search over records, a Python port of fuse.js">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-label="pyfuse — fuzzy search over records for Python">
   <title>pyfuse — fuzzy search over records for Python</title>
+  <style>
+    .sans { font-family: "Segoe UI", Inter, -apple-system, Helvetica, Arial, sans-serif; }
+    .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  </style>
 
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#17171c"/>
-      <stop offset="55%" stop-color="#1b1b22"/>
-      <stop offset="100%" stop-color="#221d1c"/>
-    </linearGradient>
-    <linearGradient id="spark" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#e0836b"/>
-      <stop offset="100%" stop-color="#f0c46b"/>
-    </linearGradient>
-    <style>
-      .sans { font-family: "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
-      .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-    </style>
-  </defs>
+  <rect width="1200" height="500" rx="12" fill="#16161b"/>
 
-  <rect width="1200" height="420" rx="14" fill="url(#bg)"/>
-  <rect x="0" y="0" width="1200" height="3" rx="1.5" fill="url(#spark)"/>
-
-  <!-- ── left: identity ─────────────────────────────────────── -->
-  <text class="mono" x="64" y="86" font-size="14" letter-spacing="3.4" fill="#8d8a96">
-    TYPESCRIPT  →  PYTHON
-  </text>
-
-  <text class="sans" x="62" y="176" font-size="82" font-weight="700" fill="#f2f0ec" letter-spacing="-2">
-    pyfuse
-  </text>
-
-  <text class="sans" x="64" y="220" font-size="24" fill="#c9c5bf">
-    Fuzzy search over <tspan font-style="italic">records</tspan>, not just strings.
-  </text>
-  <text class="sans" x="64" y="253" font-size="19" fill="#8d8a96">
-    A behavioural Python port of fuse.js — same results, proved.
-  </text>
-
-  <rect x="64" y="286" width="286" height="44" rx="8" fill="#26262e" stroke="#33333d"/>
-  <text class="mono" x="84" y="314" font-size="17" fill="#e8e5df">
-    <tspan fill="#7f7c88">$</tspan> pip install pyfusejs
-  </text>
-
-  <!-- stats -->
-  <g class="sans">
-    <text x="64" y="374" font-size="15" fill="#6fae9a" font-weight="600">0</text>
-    <text x="78" y="374" font-size="15" fill="#8d8a96">runtime deps</text>
-
-    <text x="196" y="374" font-size="15" fill="#6fae9a" font-weight="600">285/297</text>
-    <text x="258" y="374" font-size="15" fill="#8d8a96">original JS tests</text>
-
-    <text x="392" y="374" font-size="15" fill="#6fae9a" font-weight="600">0</text>
-    <text x="406" y="374" font-size="15" fill="#8d8a96">divergences / 51,569 fuzz cases</text>
+  <!-- icon tile: "approximately equal" is what fuzzy matching means -->
+  <rect x="552" y="72" width="96" height="96" rx="23" fill="#ffd166"/>
+  <g stroke="#16161b" stroke-width="10" stroke-linecap="round" fill="none">
+    <path d="M582 105 q10 -11 20 0 t20 0"/>
+    <path d="M582 135 q10 -11 20 0 t20 0"/>
   </g>
 
-  <!-- ── right: what it actually does ────────────────────────── -->
-  <g transform="translate(700, 62)">
-    <rect x="0" y="0" width="438" height="296" rx="12" fill="#1f1f26" stroke="#32323c"/>
+  <!-- wordmark -->
+  <text class="sans" x="600" y="248" font-size="66" font-weight="700"
+        fill="#f4f2ee" text-anchor="middle" letter-spacing="-1.4">pyfuse</text>
 
-    <!-- query bar -->
-    <rect x="20" y="22" width="398" height="42" rx="8" fill="#17171c" stroke="#3a3a45"/>
-    <text class="mono" x="38" y="49" font-size="16" fill="#e8e5df">ste ham</text>
-    <text class="mono" x="376" y="49" font-size="12" fill="#6b6873">query</text>
+  <text class="sans" x="600" y="292" font-size="22" font-weight="600"
+        fill="#ffd166" text-anchor="middle">fuzzy search over records, for Python</text>
 
-    <!-- result 1 -->
-    <text class="sans" x="22" y="102" font-size="16" font-weight="600" fill="#f2f0ec">The Lock Artist</text>
-    <text class="mono" x="376" y="102" font-size="12" fill="#7f7c88">0.6886</text>
+  <text class="sans" x="600" y="330" font-size="18" fill="#8e8b96" text-anchor="middle">
+    a behavioural port of fuse.js · zero dependencies
+  </text>
 
-    <text class="mono" x="22" y="128" font-size="12.5" fill="#8d8a96">author.firstName</text>
-    <rect x="146" y="115" width="30" height="18" rx="3" fill="#5c4a12"/>
-    <text class="mono" x="150" y="128" font-size="12.5" fill="#ffe9a8">Ste</text>
-    <text class="mono" x="177" y="128" font-size="12.5" fill="#c9c5bf">ve</text>
+  <line x1="300" y1="380" x2="900" y2="380" stroke="#2b2b33"/>
 
-    <text class="mono" x="22" y="152" font-size="12.5" fill="#8d8a96">author.lastName</text>
-    <rect x="139" y="139" width="32" height="18" rx="3" fill="#5c4a12"/>
-    <text class="mono" x="143" y="152" font-size="12.5" fill="#ffe9a8">Ham</text>
-    <text class="mono" x="172" y="152" font-size="12.5" fill="#c9c5bf">ilton</text>
+  <!-- verified numbers only -->
+  <g class="sans" text-anchor="middle" font-size="16">
+    <text x="300" y="422" fill="#7fc9a5" font-weight="700">285/297</text>
+    <text x="300" y="446" fill="#77747f" font-size="13">original JS tests</text>
 
-    <line x1="20" y1="172" x2="418" y2="172" stroke="#2c2c35"/>
+    <text x="500" y="422" fill="#7fc9a5" font-weight="700">0</text>
+    <text x="500" y="446" fill="#77747f" font-size="13">divergences / 51,569</text>
 
-    <!-- result 2 -->
-    <text class="sans" x="22" y="200" font-size="16" font-weight="600" fill="#f2f0ec">The Grand Design</text>
-    <text class="mono" x="376" y="200" font-size="12" fill="#7f7c88">0.7539</text>
+    <text x="700" y="422" fill="#7fc9a5" font-weight="700">421</text>
+    <text x="700" y="446" fill="#77747f" font-size="13">own tests</text>
 
-    <text class="mono" x="22" y="226" font-size="12.5" fill="#8d8a96">author.firstName</text>
-    <rect x="146" y="213" width="30" height="18" rx="3" fill="#5c4a12"/>
-    <text class="mono" x="150" y="226" font-size="12.5" fill="#ffe9a8">Ste</text>
-    <text class="mono" x="177" y="226" font-size="12.5" fill="#c9c5bf">phen</text>
-
-    <line x1="20" y1="246" x2="418" y2="246" stroke="#2c2c35"/>
-
-    <text class="sans" x="22" y="274" font-size="13" fill="#6b6873">
-      weighted keys · nested paths · typo tolerant
-    </text>
+    <text x="900" y="422" fill="#7fc9a5" font-weight="700">0</text>
+    <text x="900" y="446" fill="#77747f" font-size="13">dependencies</text>
   </g>
 </svg>
