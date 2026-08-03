@@ -1,11 +1,11 @@
-fusejs-python
+pyfuse
 Copyright 2026 Ayan Bag
 
 This product includes software derived from Fuse.js
 (https://github.com/krisk/Fuse), Copyright (c) 2017 Kirollos Risk,
 licensed under the Apache License, Version 2.0.
 
-The Python source under src/fusejs/ is an independent reimplementation of the
+The Python source under src/pyfuse/ is an independent reimplementation of the
 fuse.js algorithms, written for Port Mortem 2026 (Track H, TypeScript ->
 Python). It contains no JavaScript and has no runtime dependency on Node.
 
@@ -14,7 +14,7 @@ tests/original/ for provenance and to serve as a differential test oracle.
 That directory retains its original Apache-2.0 licence; see
 tests/original/LICENSE.
 
-src/fusejs/_fdlibm.py is a transcription of __ieee754_pow from FDLIBM,
+src/pyfuse/_fdlibm.py is a transcription of __ieee754_pow from FDLIBM,
 Copyright (C) 1993 by Sun Microsystems, Inc. Developed at SunSoft, a Sun
 Microsystems, Inc. business. Permission to use, copy, modify, and distribute
 this software is freely granted, provided that this notice is preserved.

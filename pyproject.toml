@@ -3,14 +3,24 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fusejs-python"
+name = "pyfuse"
 version = "7.5.0"
-description = "A byte-equivalent Python port of fuse.js — lightweight fuzzy-search engine."
+description = "Fuzzy search over records — a behavioural Python port of fuse.js."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 authors = [{ name = "Ayan Bag" }]
-keywords = ["fuzzy", "search", "bitap", "fuse", "fuzzy-search"]
+keywords = [
+  "fuzzy",
+  "search",
+  "fuzzy-search",
+  "bitap",
+  "fuse",
+  "pyfuse",
+  "full-text-search",
+  "approximate-string-matching",
+  "typo-tolerant",
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -35,11 +45,30 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ayanbag/fusejs-python"
+Homepage = "https://github.com/ayanbag/pyfuse"
+Repository = "https://github.com/ayanbag/pyfuse"
+Demo = "https://ayanbag.github.io/pyfuse/"
+Issues = "https://github.com/ayanbag/pyfuse/issues"
+"Decision log" = "https://github.com/ayanbag/pyfuse/blob/main/DECISIONS.md"
 "Upstream (fuse.js)" = "https://github.com/krisk/Fuse"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/fusejs"]
+packages = ["src/pyfuse"]
+
+# The sdist carries the sources needed to build and verify the package, and
+# nothing else. `tests/original/` is a vendored fuse.js checkout kept for
+# provenance — it belongs in the repository, not in everyone's download.
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src",
+  "/tests/port",
+  "/examples",
+  "/README.md",
+  "/DECISIONS.md",
+  "/LICENSE",
+  "/NOTICE",
+  "/pyproject.toml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/port"]
@@ -78,8 +107,8 @@ ignore = [
 # These files contain exotic whitespace and lookalike letters *on purpose*:
 # they transcribe the ECMAScript whitespace set and fuse.js's
 # non-decomposable character map. RUF001 would have us "fix" the data.
-"src/fusejs/_js.py" = ["RUF001"]
-"src/fusejs/helpers/diacritics.py" = ["RUF001", "E501"]
+"src/pyfuse/_js.py" = ["RUF001"]
+"src/pyfuse/helpers/diacritics.py" = ["RUF001", "E501"]
 "tests/port/*" = ["ANN", "PLR2004", "RUF012", "N802", "N803", "N806", "RUF001"]
 "fuzz/*" = ["ANN", "PLR2004", "RUF012"]
 # The benchmark imports platform-specific modules (`ctypes`, `resource`) inside
@@ -90,10 +119,10 @@ ignore = [
 [tool.mypy]
 python_version = "3.10"
 strict = true
-# `packages` rather than `files`: `src/fusejs/types.py` would otherwise be
+# `packages` rather than `files`: `src/pyfuse/types.py` would otherwise be
 # resolved as the stdlib top-level `types` module.
 mypy_path = "src"
-packages = ["fusejs"]
+packages = ["pyfuse"]
 warn_unreachable = true
 disallow_any_explicit = false
 show_error_codes = true

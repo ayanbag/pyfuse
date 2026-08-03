@@ -1,4 +1,4 @@
-"""Benchmark fusejs (Python) against fuse.js (Node) on a shared workload.
+"""Benchmark pyfuse (Python) against fuse.js (Node) on a shared workload.
 
 Measures four things per engine, on the same corpus and the same queries:
 
@@ -153,7 +153,7 @@ def measure_python(
     corpus: list[dict[str, Any]], queries: list[str], options: dict[str, Any]
 ) -> dict[str, Any]:
     """Run the workload against the Python port in this process."""
-    from fusejs import Fuse
+    from pyfuse import Fuse
 
     started = time.perf_counter()
     fuse = Fuse(corpus, options)
@@ -175,7 +175,7 @@ def measure_python(
     elapsed = time.perf_counter() - bench_started
 
     return {
-        "engine": "fusejs-python",
+        "engine": "pyfuse",
         "runtime": f"CPython {platform.python_version()}",
         "startup_ms": round(startup_ms, 3),
         "searches": len(queries),

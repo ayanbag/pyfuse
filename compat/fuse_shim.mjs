@@ -2,7 +2,7 @@
 //
 // The vendored vitest suite imports `Fuse from '../dist/fuse.mjs'`. A vitest
 // alias points that specifier here, so the original test files run — byte for
-// byte unmodified — against fusejs-python instead of fuse.js.
+// byte unmodified — against pyfuse instead of fuse.js.
 //
 // Everything is synchronous, because the tests are.
 

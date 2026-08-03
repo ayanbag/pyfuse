@@ -1,14 +1,14 @@
-# fusejs-python — reproducible build and verification.
+# pyfuse — reproducible build and verification.
 #
 # The shipped package has zero runtime dependencies and no JavaScript. Node is
 # present in this image *only* to run the fuse.js differential oracle, which is
 # test infrastructure: nothing under src/ imports or executes it. See
 # DECISIONS.md on the "no source-language runtime" rule.
 #
-#   docker build -t fusejs-python .
-#   docker run --rm fusejs-python              # build + checks + tests
-#   docker run --rm fusejs-python just fuzz    # 60s differential fuzz
-#   docker run --rm fusejs-python just bench   # benchmark vs fuse.js
+#   docker build -t pyfuse .
+#   docker run --rm pyfuse              # build + checks + tests
+#   docker run --rm pyfuse just fuzz    # 60s differential fuzz
+#   docker run --rm pyfuse just bench   # benchmark vs fuse.js
 
 FROM python:3.12-slim
 

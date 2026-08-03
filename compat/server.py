@@ -1,6 +1,6 @@
 """Python side of the compatibility bridge.
 
-Serves the `fusejs` Python port to the *unmodified* fuse.js vitest suite, so
+Serves the `pyfuse` Python port to the *unmodified* fuse.js vitest suite, so
 the original tests can execute against this port. One JSON request per line on
 stdin, one JSON response per line on stdout.
 
@@ -22,18 +22,18 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fusejs import (  # noqa: E402
+from pyfuse import (  # noqa: E402
     Fuse,
     FuseOptions,
     __version__,
     create_index,
     parse_index,
 )
-from fusejs.core.query_parser import (  # noqa: E402
+from pyfuse.core.query_parser import (  # noqa: E402
     ParsedLeaf,
     ParsedOperator,
 )
-from fusejs.core.query_parser import parse as parse_query  # noqa: E402
+from pyfuse.core.query_parser import parse as parse_query  # noqa: E402
 
 _instances: dict[int, Fuse] = {}
 _indexes: dict[int, Any] = {}
@@ -262,7 +262,7 @@ def handle(command: dict[str, Any]) -> Any:
         return None
 
     if op == "indexSetKeys":
-        from fusejs.tools.key_store import create_key
+        from pyfuse.tools.key_store import create_key
 
         _indexes[command["id"]].set_keys([create_key(k) for k in command["keys"]])
         return None

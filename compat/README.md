@@ -40,7 +40,7 @@ never find out.
    py_worker.mjs          JS: owns the Python process, async I/O
         │  newline-delimited JSON
         ▼
-    server.py             Python: drives the real fusejs port
+    server.py             Python: drives the real pyfuse port
 ```
 
 ## The hard part: the calls have to be synchronous

@@ -2,7 +2,7 @@
 //
 // The only thing this changes is *which module* the tests import as `Fuse`:
 // the alias below swaps `dist/fuse.mjs` for a shim that delegates every call
-// to fusejs-python. No test file is touched — that is the whole point, and the
+// to pyfuse. No test file is touched — that is the whole point, and the
 // competition rules require it.
 //
 //   npx vitest run --config compat/vitest.config.mjs

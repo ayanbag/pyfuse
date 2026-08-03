@@ -1,8 +1,8 @@
-# fusejs-python
+# pyfuse
 
 A Python port of **[fuse.js](https://github.com/krisk/Fuse)**, the fuzzy-search
-library, built for **Port Mortem 2026** (Track H, Open Pair: TypeScript →
-Python). The goal was behavioural equivalence with the original, not a
+library, originally built for **Port Mortem 2026** (Track H, Open Pair: TypeScript →
+Python). The main goal was behavioural equivalence with the original, not a
 lookalike API.
 
 ---
@@ -16,7 +16,7 @@ nested-path lookups, extended-query operators (`=exact`, `^prefix`,
 `!inverse`, and friends), `$and`/`$or` composition, token search with IDF
 ranking, and a scoring pass to tie it together.
 
-This is a real reimplementation of that engine in Python, not a wrapper. The
+This is a real re-implementation of that engine in Python, not a wrapper. The
 package has zero runtime dependencies and there is no Node anywhere in it.
 fuse.js does show up in this repo, but only as a test oracle — something to
 diff against.
@@ -35,10 +35,19 @@ ecosystem that most data and backend work has already left. So the capability
 exists, it's just on the wrong side of a language boundary. Moving it is the
 whole point of this port.
 
+## Install
+
+```bash
+pip install pyfuse
+```
+
+Python 3.10+. No runtime dependencies — the only thing that lands in your
+environment is this package.
+
 ## Quick start
 
 ```python
-from fusejs import Fuse
+from pyfuse import Fuse
 
 books = [
     {"title": "Old Man's War", "author": "John Scalzi"},
@@ -55,7 +64,7 @@ accepted too, so a config file shared with a JS codebase works as-is.
 
 ## Try it without installing anything
 
-**[→ Open the live playground](https://ayanbag.github.io/fusejs-python-port/)**
+**[→ Open the live playground](https://ayanbag.github.io/pyfuse/)**
 
 The port is pure Python with zero dependencies, which means it runs unmodified
 in the browser under Pyodide. That page installs the actual wheel — the same
@@ -73,15 +82,15 @@ just playground            # serve the browser playground locally
 
 ### Worked examples
 
-Three scripts in [`examples/`](./examples/) that use the port to solve a real
+Three scripts in [`examples/`](https://github.com/ayanbag/pyfuse/tree/main/examples/) that use the port to solve a real
 problem rather than to show off an API. Each documents the option choices it
 made and why, and the numbers in the commentary were measured, not guessed.
 
 | | What it does |
 |---|---|
-| [`ticket_triage.py`](./examples/ticket_triage.py) | Routes messy free-text support tickets to a runbook, with cutoffs for auto-route / suggest / escalate. Shows why long queries need token search, and why IDF misleads on a small corpus. |
-| [`reconcile.py`](./examples/reconcile.py) | Fuzzy-joins two record sets after a migration drops the key — `ACME CORPORATION LTD` vs `Acme Corp. Limited`. Reports matched, needs-review, and missing in both directions. |
-| [`search_json.py`](./examples/search_json.py) | A general CLI: fuzzy-search any JSON or JSONL file, with inferred or explicit keys, extended operators and highlighted output. |
+| [`ticket_triage.py`](https://github.com/ayanbag/pyfuse/blob/main/examples/ticket_triage.py) | Routes messy free-text support tickets to a runbook, with cutoffs for auto-route / suggest / escalate. Shows why long queries need token search, and why IDF misleads on a small corpus. |
+| [`reconcile.py`](https://github.com/ayanbag/pyfuse/blob/main/examples/reconcile.py) | Fuzzy-joins two record sets after a migration drops the key — `ACME CORPORATION LTD` vs `Acme Corp. Limited`. Reports matched, needs-review, and missing in both directions. |
+| [`search_json.py`](https://github.com/ayanbag/pyfuse/blob/main/examples/search_json.py) | A general CLI: fuzzy-search any JSON or JSONL file, with inferred or explicit keys, extended operators and highlighted output. |
 
 ```bash
 python examples/ticket_triage.py
@@ -100,7 +109,7 @@ just build      # install + verify it imports
 Or, if you'd rather not have Python locally:
 
 ```bash
-docker build -t fusejs-python . && docker run --rm fusejs-python
+docker build -t pyfuse . && docker run --rm pyfuse
 ```
 
 The rest:
@@ -133,10 +142,10 @@ None of the 12 failures is a bug in the port. Ten of them hand fuse.js a
 JavaScript function (`sortFn`, `getFn`, a callable `tokenize`, `Fuse.use`),
 and a closure over a live JS heap cannot be serialised into Python at any
 price. The other two are divergences this port chose on purpose and wrote down
-([DECISIONS.md](./DECISIONS.md) §13 and §19) — those tests failing is the
+([DECISIONS.md](https://github.com/ayanbag/pyfuse/blob/main/DECISIONS.md) §13 and §19) — those tests failing is the
 documentation being true. All twelve are named individually in
-[`compat/README.md`](./compat/README.md), and the run output is committed as
-[`compat/results.txt`](./compat/results.txt).
+[`compat/README.md`](https://github.com/ayanbag/pyfuse/blob/main/compat/README.md), and the run output is committed as
+[`compat/results.txt`](https://github.com/ayanbag/pyfuse/blob/main/compat/results.txt).
 
 ## What "equivalent" actually means here
 
@@ -165,7 +174,7 @@ never affected, and the fuzz run is what proved me wrong.
 
 The full write-up, including the ~200-line fdlibm `Math.pow` transcription that
 got to 95.6% bit-exact and why chasing the last 4.4% was the wrong use of the
-remaining time, is in [DECISIONS.md](./DECISIONS.md).
+remaining time, is in [DECISIONS.md](https://github.com/ayanbag/pyfuse/blob/main/DECISIONS.md).
 
 ## Performance
 
@@ -173,7 +182,7 @@ remaining time, is in [DECISIONS.md](./DECISIONS.md).
 Bitap inner loop and CPython interprets it. What this port buys you is reach
 and parity, not speed, and it would be dishonest to present it otherwise.
 
-| | fusejs-python | fuse.js |
+| | pyfuse | fuse.js |
 |---|---|---|
 | throughput | 7.0 searches/s | 92.8 searches/s |
 | latency p50 | 114.9 ms | 9.0 ms |
@@ -183,7 +192,7 @@ and parity, not speed, and it would be dishonest to present it otherwise.
 
 400 documents, 4 keys, 150 queries, both engines warmed up first. The method,
 the confounders, and why you shouldn't read too much into the RSS number are
-all in [`bench/methodology.md`](./bench/methodology.md).
+all in [`bench/methodology.md`](https://github.com/ayanbag/pyfuse/blob/main/bench/methodology.md).
 
 ## Engineering notes
 
@@ -194,7 +203,7 @@ all in [`bench/methodology.md`](./bench/methodology.md).
 - 417 native tests, plus 285 of the original suite's 297. Some of the native
   ones are property-based (`hypothesis`) and run against the live oracle rather
   than against fixed expectations.
-- Anything that diverges is in [DECISIONS.md](./DECISIONS.md) with the evidence
+- Anything that diverges is in [DECISIONS.md](https://github.com/ayanbag/pyfuse/blob/main/DECISIONS.md) with the evidence
   that led there.
 
 ## Scope
@@ -204,12 +213,12 @@ search, logical queries, token search with IDF ranking. About 3,283 lines.
 
 Left out: `src/workers/*`, the Web Worker and worker-thread plumbing. It's
 JS-runtime machinery rather than search behaviour, and the reasoning is in
-[DECISIONS.md](./DECISIONS.md) §17.
+[DECISIONS.md](https://github.com/ayanbag/pyfuse/blob/main/DECISIONS.md) §17.
 
 ## Attribution and license
 
 Ported from **fuse.js** ([krisk/Fuse](https://github.com/krisk/Fuse)),
 © Kirollos Risk, Apache-2.0. This port is Apache-2.0 as well. See
-[NOTICE](./NOTICE).
+[NOTICE](https://github.com/ayanbag/pyfuse/blob/main/NOTICE).
 
 Pinned source commit: `45bac9f` (tag `v7.5.0`).

@@ -51,13 +51,13 @@ jobs:
 
           # The page pins a wheel filename, which carries the version. Rewrite
           # it so a version bump can never leave the demo fetching a 404.
-          sed -i "s|\./fusejs_python-[^\"]*\.whl|./$wheel|" docs/index.html
+          sed -i "s|\./pyfuse-[^\"]*\.whl|./$wheel|" docs/index.html
 
           # Assert the rewrite landed, rather than trusting sed's exit code —
           # sed reports success when it matches nothing.
           if ! grep -qF "\"./$wheel\"" docs/index.html; then
             echo "::error file=docs/index.html::page does not reference ./$wheel"
-            grep -o '\./fusejs_python[^"]*\.whl' docs/index.html || echo "(no wheel reference at all)"
+            grep -o '\./pyfuse[^"]*\.whl' docs/index.html || echo "(no wheel reference at all)"
             exit 1
           fi
           echo "docs/index.html references ./$wheel"
@@ -67,7 +67,7 @@ jobs:
           set -euo pipefail
           python -m pip install docs/*.whl
           python - <<'PY'
-          from fusejs import Fuse
+          from pyfuse import Fuse
           books = [{"title": "Old Man's War"}, {"title": "The Lock Artist"}]
           hits = Fuse(books, {"keys": ["title"], "include_score": True}).search("old man")
           assert hits and hits[0].item["title"] == "Old Man's War", hits

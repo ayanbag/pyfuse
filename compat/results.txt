@@ -1,9 +1,9 @@
-fusejs-python — ORIGINAL fuse.js vitest suite, run against the Python port
+pyfuse — ORIGINAL fuse.js vitest suite, run against the Python port
 ===========================================================================
 Command : npx vitest run --config compat/vitest.config.mjs
 Date    : 2026-08-02 20:54 UTC
 Test files are BYTE-FOR-BYTE UNMODIFIED. Only a vitest alias redirects
-'../dist/fuse.mjs' to a shim that delegates to fusejs-python.
+'../dist/fuse.mjs' to a shim that delegates to pyfuse.
 
  ❯ test/match.test.js (14 tests | 1 failed) 603ms
      × throws when useTokenSearch is true (full build) 23ms

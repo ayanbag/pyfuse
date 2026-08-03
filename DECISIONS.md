@@ -29,7 +29,7 @@ actually uses: **10.04% disagree, always by exactly 1 ULP.**
 `compute_score_single` does one `pow` per matched key and token search adds an
 IDF `log` per term, so it compounds down the chain rather than cancelling.
 
-I did try to close it. `src/fusejs/_fdlibm.py` is a ~200-line transcription of
+I did try to close it. `src/pyfuse/_fdlibm.py` is a ~200-line transcription of
 fdlibm's `__ieee754_pow`, which is the algorithm V8 documents itself as using,
 with all 23 constants checked bit-for-bit against their published patterns. It
 gets to **95.6% agreement with V8**, up from 90.0% for native `**`.

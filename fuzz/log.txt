@@ -1,4 +1,4 @@
-fusejs-python — differential fuzz run
+pyfuse — differential fuzz run
 ============================================================
 oracle          : fuse.js 7.5.0 (Node)
 duration        : 60.0s

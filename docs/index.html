@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>fusejs-python — live demo</title>
+<title>pyfuse — live demo</title>
 <meta name="description" content="Try the Python port of fuse.js live. Type a query, tweak the options, watch results update in real time — running real CPython in your browser.">
 <style>
   :root {
@@ -130,8 +130,8 @@
   Try the <b>Python</b> port of fuse.js live. Type a query, tweak the options,
   and see results update in real time.
 </p>
-<p class="lede" style="font-size:14.5px">
-  <b>fusejs-python</b> is a fuzzy-search <i>engine</i>, not a string-similarity
+<!-- <p class="lede" style="font-size:14.5px">
+  <b>pyfuse</b> is a fuzzy-search <i>engine</i>, not a string-similarity
   function. Give it a collection of records and it returns them ranked by
   relevance, tolerating the typos, transpositions and half-remembered spellings
   people actually type. It searches weighted keys and nested paths
@@ -145,7 +145,7 @@
   Everything below is computed by the real package — the same wheel you would
   <code>pip install</code>, running here in your browser. Nothing is
   reimplemented in JavaScript.
-</p>
+</p> -->
 
 <div class="badges">
   <span class="badge">original vitest suite <b>285/297</b></span>
@@ -193,7 +193,7 @@
 
   <footer>
     Port Mortem 2026 · Track H (TypeScript&nbsp;→&nbsp;Python) ·
-    <a href="https://github.com/ayanbag/fusejs-python-port">source</a> ·
+    <a href="https://github.com/ayanbag/pyfuse">source</a> ·
     <a href="https://github.com/krisk/Fuse">original fuse.js</a><br>
     Everything runs locally in this tab. Nothing is uploaded.
   </footer>
@@ -405,7 +405,7 @@ function renderCode(keys) {
     if (opts[name]) lines.push(`"${name}": True,`);
   }
   $("code").innerHTML =
-    `<span class="k">from</span> fusejs <span class="k">import</span> Fuse\n\n` +
+    `<span class="k">from</span> pyfuse <span class="k">import</span> Fuse\n\n` +
     `fuse = Fuse(books, {\n` +
     lines.map(l => "    " + l.replace(/"([^"]*)"/g, '<span class="st">"$1"</span>')
                              .replace(/\bTrue\b/g, '<span class="k">True</span>')).join("\n") +
@@ -452,11 +452,11 @@ function run() {
 async function boot() {
   const pyodide = await loadPyodide();
   await pyodide.loadPackage("micropip");
-  await pyodide.pyimport("micropip").install("./fusejs_python-7.5.0-py3-none-any.whl");
+  await pyodide.pyimport("micropip").install("./pyfuse-7.5.0-py3-none-any.whl");
 
   pyodide.runPython(`
 import json
-from fusejs import Fuse
+from pyfuse import Fuse
 
 def _keys(docs):
     """Derive key paths from the first record, one level into nested objects."""

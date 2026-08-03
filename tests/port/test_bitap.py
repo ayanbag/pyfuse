@@ -6,9 +6,9 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from fusejs.config import MAX_BITS
-from fusejs.errors import PatternLengthError
-from fusejs.search.bitap import (
+from pyfuse.config import MAX_BITS
+from pyfuse.errors import PatternLengthError
+from pyfuse.search.bitap import (
     BitapSearch,
     compute_score,
     convert_mask_to_indices,

@@ -34,7 +34,7 @@ function handle(cmd) {
     case 'match':
       return Fuse.match(cmd.pattern, cmd.text, cmd.options || {})
 
-    // Batch `Math.pow`, for verifying the fdlibm port in src/fusejs/_fdlibm.py.
+    // Batch `Math.pow`, for verifying the fdlibm port in src/pyfuse/_fdlibm.py.
     // V8's Math.pow is not correctly rounded, so the Python port has to
     // reproduce *its* rounding rather than the true result.
     //

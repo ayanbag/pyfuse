@@ -7,16 +7,16 @@ import re
 import pytest
 
 from conftest import assert_matches_oracle
-from fusejs import Fuse
-from fusejs.search.token import MAX_MASK_TERMS, TokenSearch
-from fusejs.search.token.analyzer import Analyzer, default_tokenize
-from fusejs.search.token.inverted_index import (
+from pyfuse import Fuse
+from pyfuse.search.token import MAX_MASK_TERMS, TokenSearch
+from pyfuse.search.token.analyzer import Analyzer, default_tokenize
+from pyfuse.search.token.inverted_index import (
     InvertedIndexData,
     build_inverted_index,
     remove_and_shift_inverted_index,
     remove_from_inverted_index,
 )
-from fusejs.tools import create_index
+from pyfuse.tools import create_index
 
 BOOKS = [
     {"title": "Old Man's War", "author": {"firstName": "John", "lastName": "Scalzi"}},

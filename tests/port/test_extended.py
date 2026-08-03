@@ -5,10 +5,10 @@ from __future__ import annotations
 import pytest
 
 from conftest import assert_matches_oracle
-from fusejs import Fuse
-from fusejs.search.extended import ExtendedSearch
-from fusejs.search.extended.matchers import MATCHERS, is_inverse
-from fusejs.search.extended.parse_query import parse_query, tokenize
+from pyfuse import Fuse
+from pyfuse.search.extended import ExtendedSearch
+from pyfuse.search.extended.matchers import MATCHERS, is_inverse
+from pyfuse.search.extended.parse_query import parse_query, tokenize
 
 BOOKS = [
     {"title": "Old Man's War", "author": {"firstName": "John", "lastName": "Scalzi"}},

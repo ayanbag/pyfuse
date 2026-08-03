@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""A guided tour of fusejs-python, meant to be read as it runs.
+"""A guided tour of pyfuse, meant to be read as it runs.
 
     python examples/demo.py                # the whole tour
     python examples/demo.py --interactive  # ...then a live search prompt
@@ -22,7 +22,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fusejs import Fuse, FuseResult, RangeTuple, __version__
+from pyfuse import Fuse, FuseResult, RangeTuple, __version__
 
 # ── Presentation ───────────────────────────────────────────────────
 
@@ -162,7 +162,7 @@ KEYS = ["title", "summary", "service.name", "tags"]
 
 def tour() -> None:
     print()
-    print(bold(f"  fusejs-python {__version__}"), dim("— a Python port of fuse.js"))
+    print(bold(f"  pyfuse {__version__}"), dim("— a Python port of fuse.js"))
     print(dim(f"  {len(RUNBOOKS)} runbooks, {len(KEYS)} keys, 0 dependencies"))
 
     # 1 ────────────────────────────────────────────────────────────

@@ -32,7 +32,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fusejs import Fuse, FuseResult, RangeTuple
+from pyfuse import Fuse, FuseResult, RangeTuple
 
 BOLD = "\033[1;33m"
 DIM = "\033[2m"

@@ -1,4 +1,4 @@
-# fusejs-python — task runner.
+# pyfuse — task runner.
 #
 # `just build` is the one documented command that produces a runnable
 # artifact. Everything else is a convenience on top of it.
@@ -17,11 +17,11 @@ default:
 build:
     {{python}} -m pip install --quiet --upgrade pip
     {{python}} -m pip install --quiet -e ".[dev]"
-    {{python}} -c "import fusejs; print('fusejs', fusejs.__version__, 'ready')"
+    {{python}} -c "import pyfuse; print('pyfuse', pyfuse.__version__, 'ready')"
 
 # Build the Docker image instead (no local Python needed).
 docker:
-    docker build -t fusejs-python .
+    docker build -t pyfuse .
 
 # ── Demo ───────────────────────────────────────────────────────────
 

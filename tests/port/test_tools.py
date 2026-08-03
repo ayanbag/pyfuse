@@ -6,12 +6,12 @@ import json
 
 import pytest
 
-from fusejs.errors import (
+from pyfuse.errors import (
     InvalidDocIndexError,
     InvalidKeyWeightError,
     MissingKeyPropertyError,
 )
-from fusejs.tools import (
+from pyfuse.tools import (
     FieldNorm,
     KeyStore,
     MaxHeap,
@@ -21,7 +21,7 @@ from fusejs.tools import (
     create_key_path,
     parse_index,
 )
-from fusejs.types import InternalResult, KeyOption
+from pyfuse.types import InternalResult, KeyOption
 
 
 def _result(idx: int, score: float) -> InternalResult:

@@ -4,7 +4,7 @@ Spawns ``fuzz/oracle.js`` once and talks newline-delimited JSON to it, so a
 differential run costs one process for the whole session instead of one per
 case.
 
-This module is *test infrastructure only*. The shipped ``fusejs`` package has
+This module is *test infrastructure only*. The shipped ``pyfuse`` package has
 no Node dependency and never imports anything from here.
 """
 

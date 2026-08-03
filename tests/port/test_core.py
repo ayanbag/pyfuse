@@ -5,18 +5,18 @@ from __future__ import annotations
 import pytest
 
 from conftest import assert_matches_oracle
-from fusejs import Fuse, FuseOptions, create_index
-from fusejs.config import default_sort_fn
-from fusejs.core.compute_score import compute_score_single
-from fusejs.core.format_matches import format_matches
-from fusejs.core.query_parser import ParsedLeaf, ParsedOperator, parse
-from fusejs.errors import (
+from pyfuse import Fuse, FuseOptions, create_index
+from pyfuse.config import default_sort_fn
+from pyfuse.core.compute_score import compute_score_single
+from pyfuse.core.format_matches import format_matches
+from pyfuse.core.query_parser import ParsedLeaf, ParsedOperator, parse
+from pyfuse.errors import (
     FeatureUnavailableError,
     InvalidDocIndexError,
     InvalidIndexTypeError,
     InvalidQueryError,
 )
-from fusejs.types import InternalResult, KeyObject, MatchScore
+from pyfuse.types import InternalResult, KeyObject, MatchScore
 
 BOOKS = [
     {"title": "Old Man's War", "author": {"firstName": "John", "lastName": "Scalzi"}},

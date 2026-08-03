@@ -18,7 +18,7 @@
   },
   "results": [
     {
-      "engine": "fusejs-python",
+      "engine": "pyfuse",
       "runtime": "CPython 3.11.9",
       "startup_ms": 13.681,
       "searches": 150,

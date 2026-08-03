@@ -1,4 +1,4 @@
-"""Differential fuzzer: fusejs (Python) vs fuse.js (Node), on shared inputs.
+"""Differential fuzzer: pyfuse (Python) vs fuse.js (Node), on shared inputs.
 
 Generates random `(documents, query, options)` triples, runs both engines on
 exactly the same input, and compares the results. Structure — result set,
@@ -27,8 +27,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fusejs import Fuse
 from oracle import Oracle, OracleError
+from pyfuse import Fuse
 
 # Scores are compared to a *relative* tolerance, not an exact bit match.
 #
@@ -441,7 +441,7 @@ def format_report(stats: Stats, elapsed: float, version: str, seed: int) -> str:
     """The human-readable log written to ``fuzz/log.txt``."""
     rate = stats.cases / elapsed if elapsed else 0.0
     lines = [
-        "fusejs-python — differential fuzz run",
+        "pyfuse — differential fuzz run",
         "=" * 60,
         f"oracle          : fuse.js {version} (Node)",
         f"duration        : {elapsed:.1f}s",

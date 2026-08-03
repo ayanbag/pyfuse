@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from fusejs._js import js_index_of, js_round, js_str, js_trim
-from fusejs.helpers import merge_indices, strip_diacritics
-from fusejs.helpers.get import PathValue, get
-from fusejs.helpers.type_guards import is_blank, is_defined, to_string
+from pyfuse._js import js_index_of, js_round, js_str, js_trim
+from pyfuse.helpers import merge_indices, strip_diacritics
+from pyfuse.helpers.get import PathValue, get
+from pyfuse.helpers.type_guards import is_blank, is_defined, to_string
 
 
 class TestJsSemantics:

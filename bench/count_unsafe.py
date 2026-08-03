@@ -38,7 +38,7 @@ def main() -> int:
                 hits.append(f"  {path.relative_to(SRC)}:{line}  {name}")
 
     width = max(len(name) for name in PATTERNS)
-    print("Escape-hatch census over src/fusejs")
+    print("Escape-hatch census over src/pyfuse")
     print("=" * 46)
     for name, count in counts.items():
         flag = "" if count == 0 else "  <--"
