@@ -566,6 +566,7 @@ function fromFuseJS(r) {
 // package has no JavaScript in it and never calls one.
 
 let FuseJS = null;          // the original library, lazily imported
+let runToken = 0;           // identifies the newest run; older ones must not paint
 const CAMEL = {             // our snake_case options -> fuse.js spelling
   include_score: "includeScore",
   include_matches: "includeMatches",
@@ -604,14 +605,24 @@ function setVerdict(state, text, detail) {
  * V8's is not; they disagree by 1 ULP on ~10% of calls. Same standard the
  * project's fuzz harness uses.
  */
-async function compareWithOracle(mine, keys) {
-  const Fuse = await oracle();
+async function compareWithOracle(mine, keys, token) {
+  // Snapshot every input BEFORE awaiting. `mine` was produced from the page as
+  // it stood at call time; reading the DOM after the await would diff it
+  // against whatever has been typed since, which is not a comparison at all.
   const opts = options();
+  const data = $("data").value;
+  const query = $("q").value;
+
+  const Fuse = await oracle();
+
+  // Importing fuse.js is a network round trip on first use, so several runs can
+  // be in flight at once. Only the newest may touch the DOM.
+  if (token !== runToken) return;
+
   const jsOpts = { keys, threshold: opts.threshold };
   for (const [snake, camel] of Object.entries(CAMEL)) jsOpts[camel] = opts[snake];
 
-  const theirs = new Fuse(JSON.parse($("data").value), jsOpts)
-    .search($("q").value).slice(0, 50).map(fromFuseJS);
+  const theirs = new Fuse(JSON.parse(data), jsOpts).search(query).map(fromFuseJS);
 
   // Draw fuse.js's own results next to ours — same renderer, so a visible
   // difference is a real one.
@@ -638,7 +649,7 @@ async function compareWithOracle(mine, keys) {
     if (r.score == null || theirs[i].score == null) return;
     const d = relDiff(r.score, theirs[i].score);
     worst = Math.max(worst, d);
-    const el = document.querySelectorAll(".hitcard .s")[i];
+    const el = $("results").querySelectorAll(".hitcard .s")[i];
     if (el) {
       el.insertAdjacentHTML("afterend",
         `<span class="delta${d === 0 ? " zero" : ""}">Δ ${d === 0 ? "0" : d.toExponential(1)}</span>`);
@@ -654,6 +665,7 @@ async function compareWithOracle(mine, keys) {
 
 function run() {
   if (!search) return;
+  const token = ++runToken;   // anything still in flight is now stale
   try {
     $("count").textContent = JSON.parse($("data").value).length + " items";
   } catch { $("count").textContent = "invalid JSON"; }
@@ -671,8 +683,12 @@ function run() {
   }
 
   setVerdict("", "checking against fuse.js…", "");
-  compareWithOracle(payload.results, payload.keys)
-    .catch(e => setVerdict("bad", "could not reach the fuse.js oracle", e.message));
+  compareWithOracle(payload.results, payload.keys, token)
+    .catch(e => {
+      if (token === runToken) {
+        setVerdict("bad", "could not reach the fuse.js oracle", e.message);
+      }
+    });
 }
 
 // ── python scratchpad ─────────────────────────────────────────────

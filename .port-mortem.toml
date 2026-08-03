@@ -12,6 +12,6 @@ name    = "pyfuse"                             # rename if you chose another
 license = "Apache-2.0"
 
 [team]
-name    = "ayanbag"
+name    = "semicolonscopy"
 members = ["ayanbag"]
 contact = "ayanbag9474@gmail.com"
